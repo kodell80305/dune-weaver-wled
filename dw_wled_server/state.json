@@ -1,0 +1,34 @@
+{
+  "state": true,
+  "on": true,
+  "bri": 128,
+  "transition": 7,
+  "rgb": [255, 0, 0],
+  "hue": 0,
+  "sat": 255,
+  "val": 128,
+  "segment": [
+    {
+      "id": 0,
+      "start": 0,
+      "stop": 300,
+      "len": 300,
+      "col": [255, 0, 0],
+      "fx": 3,
+      "sx": 128,
+      "ix": 128,
+      "pal": 0,
+      "sel": false
+    }
+  ],
+  "ps": false,
+  "udpn": false,
+  "udpport": 6454,
+  "hostname": "WLED-XYZ",
+  "ip": "192.168.1.100",
+  "mac": "XX:XX:XX:XX:XX:XX",
+  "version": "0.13.0",
+  "effect": 3,
+  "timer": 0,
+  "brightness": 128
+}

@@ -1,0 +1,4 @@
+import wledpy.wled as wled
+
+led_strip = wled.Wled("127.0.0.1:5000")
+led_strip.turn_on()
