@@ -10,31 +10,35 @@ export IP_ADDRESS=192.168.50.117
 
 export IP_ADDRESS=$1
 export BRIGHTNESS_VALUE=$2
+export SLEEP_TIME=5
 
 #echo "curl --header \"Content-Type: application/json\" --request POST --data \"$DATA\" http://$IP_ADDRESS/json\n\n"
 #curl --header "Content-Type: application/json" --request POST --data "$DATA" http://$IP_ADDRESS/json
 #echo "curl -H "Accept: application/json" http://$IP_ADDRESS/json\n\n"
 #curl -H "Accept: application/json" http://$IP_ADDRESS/json
-echo "Turning on"
-curl -X POST "http://$IP_ADDRESS/json/state" -d '{"on":"t","v":true}' -H "Content-Type: application/json"
-sleep 2
+#echo "Turning on"
+#curl -X POST "http://$IP_ADDRESS/json/state" -d '{"on":"t","v":true}' -H "Content-Type: application/json"
+
 echo "Turning off"
 curl -X POST "http://$IP_ADDRESS/json/state" -d '{"on":"f","v":true}' -H "Content-Type: application/json"
 sleep 2
 echo "Back on - setting brightness to 40"
 curl -X POST "http://$IP_ADDRESS/json/state" -d '{"on":"t","v":true}' -H "Content-Type: application/json"
-curl -X POST -H "Content-Type: application/json" -d '{"bri": 40}' http://$IP_ADDRESS/json/state
-sleep 2
+curl -X POST http://$IP_ADDRESS/json/state   -d '{"bri": 40}' -H "Content-Type: application/json"
+
+
+sleep $SLEEP_TIME
 echo "brightness to 128"
+curl -X POST http://$IP_ADDRESS/json/state  -d '{"bri": 128}' -H "Content-Type: application/json"
 
-sleep 5
-echo "Set "green"
-curl -X POST http://$IP_ADDRESS/json/state   -H "Content-Type: application/json"   -d '{"seg":[{"col":[[0, 255,0]]}]}'
-sleep 5
-echo "Set "blue"
-curl -X POST http://$IP_ADDRESS/json/state   -H "Content-Type: application/json"   -d '{"seg":[{"col":[[0, 0, 255]]}]}'
-
-curl -X POST -H "Content-Type: application/json" -d '{"bri": 128}' http://$IP_ADDRESS/json/state
+sleep 2
 echo "Set red"
-curl -X POST http://$IP_ADDRESS/json/state   -H "Content-Type: application/json"   -d '{"seg":[{"col":[[255, 0,0]]}]}'
+curl -X POST http://$IP_ADDRESS/json/state   -d '{"seg":[{"col":[[255, 0,0]]}]}' -H "Content-Type: application/json"  
+sleep 2
+echo "Set green"
+curl -X POST http://$IP_ADDRESS/json/state  -d '{"seg":[{"col":[[0, 255,0]]}]}'  -H "Content-Type: application/json"
+sleep 2
+echo "Set blue"
+curl -X POST http://$IP_ADDRESS/json/state  -d '{"seg":[{"col":[[0, 0, 255]]}]}' -H "Content-Type: application/json"  
+
 

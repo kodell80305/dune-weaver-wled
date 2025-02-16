@@ -22,7 +22,6 @@ LED_DMA = 10          # DMA channel to use for generating signal (try 10)
 LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
-last_bri = config.bri
 
 strip = 0
 
@@ -30,11 +29,14 @@ def init_rpi():
     global strip
     # Create NeoPixel object with appropriate configuration.
     #not rbg, rgb, grb, brg
-    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, config.bri, LED_CHANNEL, WS2811_STRIP_GBR )
+    print("Initializing", config.LED_COUNT)
+    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, WS2811_STRIP_GBR )
     # Intialize the library (must be called once before other functions).
     strip.begin()
 
+    print("Doing rainbow")
     rainbow(strip)
+    print("Done with rainbow")
 
 
 # Main program logic follows:
@@ -44,7 +46,7 @@ def run_rpi_app():
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
 
-    print('Press Ctrl-C to quit.')
+    print('Press Ctrl-C to quit.', args)
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
         
@@ -75,12 +77,13 @@ def all_off():
         strip.setPixelColor(i, Color(0, 0, 0))
     strip.show()
 
-def restore():
+def restore(led_colors):
     # Restore LEDs to their previous colors
         # Restore LEDs to their previous colors
+    #breakpoint()
     print("restore called")
-    for i in range(0, config.LED_COUNT):
-        led = config.led_colors[i]
+    for i in range(0, strip.numPixels()):
+        led = led_colors[i]
 
         strip.setPixelColor(i, Color(*led))
     strip.show()

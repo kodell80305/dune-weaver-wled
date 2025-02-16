@@ -7,6 +7,16 @@ import requests
 import json
 from wled_rpi import restore, all_off, update_bri
 
+on=False
+bri=128
+transition=7       #time transition between effects units of 100 ms
+#I'm not sure what som
+#{"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"ledmap":0,"AudioReactive":{"on":false},"nl":{"on":false,"dur":60,"mode":1,"tbri":0,"rem":-1},
+#"udpn":{"send":false,"recv":true,"sgrp":1,"rgrp":1},"lor":0,"mainseg":0,"seg":[{"id":0,"start":0,"stop":30,"len":30,"grp":1,"spc":0,"of":0,
+#"on":true,"frz":false,"bri":255,"cct":127,"set":0,"col":[[255,160,0],[0,0,0],[0,0,0]],"fx":0,"sx":128,"ix":128,"pal":0,"c1":128,"c2":128,
+#Not scaled by brightness
+led_colors = [(bri, bri, bri)] * config.LED_COUNT  
+
 app = Flask(__name__)
 
 
@@ -26,22 +36,22 @@ def update_color(rval, gval, bval):        # Restore LEDs to their previous colo
     print("in update_color")
 
     for i in range(0, config.LED_COUNT):
-        config.led_colors[i] = (rval,gval,bval)
+        led_colors[i] = (rval,gval,bval)
 
-    config.myQueue.put((restore, ()))    
+    config.myQueue.put((restore, ((led_colors),)))    
    
     
 def handle_on(on_arg):
-    config.on = on_arg
+    on = on_arg
     if(on_arg == 't'):        
-        config.myQueue.put((restore, ()))
+        config.myQueue.put((restore, ((led_colors),)))
         
     if(on_arg == 'f'):
         config.myQueue.put((all_off, ()))
         
 def handle_bri(bri_arg):
-    config.bri = bri_arg
-    config.myQueue.put((update_bri, (config.bri,)))
+    bri = bri_arg
+    config.myQueue.put((update_bri, (bri,)))
     
         
 @app.route("/json/state", methods=["POST"])
