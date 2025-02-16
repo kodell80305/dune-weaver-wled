@@ -6,6 +6,12 @@ There are two files that are used:
 wled_rpi.py
 wled_web_server.py
 
-run sudo python wled_rpi.py
+run sudo python startup.py
+
+The only things tested are in test.sh.  Run
+
+./test.sh 127.0.0.1 
+
+on the pi.
 
 
