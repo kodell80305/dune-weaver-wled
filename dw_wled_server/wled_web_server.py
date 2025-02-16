@@ -5,8 +5,10 @@ import threading
 import config
 import requests
 import json
+from wled_rpi import restore, all_off, update_bri
 
 app = Flask(__name__)
+
 
 
 # Route to serve the HTML file
@@ -21,28 +23,25 @@ def send_effects():
 
    
 def update_color(rval, gval, bval):        # Restore LEDs to their previous colors
-    print("in update_colr")
-    #I'm not sure I understand why led_colors was defined this way .. it sems to be an array of lists of tuples.  Why not
-    #and array of tuples?
+    print("in update_color")
+
     for i in range(0, config.LED_COUNT):
         config.led_colors[i] = (rval,gval,bval)
-        print (config.led_colors[i], type (config.led_colors[i]),rval, gval, bval)
 
-    config.myQueue.put('restore')    
+    config.myQueue.put((restore, ()))    
    
-         
     
 def handle_on(on_arg):
     config.on = on_arg
     if(on_arg == 't'):        
-        config.myQueue.put('restore')
+        config.myQueue.put((restore, ()))
         
     if(on_arg == 'f'):
-        config.myQueue.put('all_off')
+        config.myQueue.put((all_off, ()))
         
 def handle_bri(bri_arg):
     config.bri = bri_arg
-    config.myQueue.put('update_bri', config.bri)
+    config.myQueue.put((update_bri, (config.bri,)))
     
         
 @app.route("/json/state", methods=["POST"])
