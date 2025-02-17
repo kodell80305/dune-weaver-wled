@@ -5,7 +5,7 @@ import threading
 import config
 import requests
 import json
-from wled_rpi import restore, all_off, update_bri
+from wled_rpi import set_led, all_off, update_bri
 
 on=False
 bri=128
@@ -32,19 +32,16 @@ def send_effects():
 #       return jsonify("effects": [{"id": 0, "name": "Static", "description": "Solid color lighting effect", "parameters": {"color": "#FF0000", "brightness": 128}}]), 200
 
    
-def update_color(rval, gval, bval):        # Restore LEDs to their previous colors
-    print("in update_color")
+def set_color(rval, gval, bval):        #Set all leds to same color
+    led_colors = [(rval, gval, bval)]*config.LED_COUNT
 
-    for i in range(0, config.LED_COUNT):
-        led_colors[i] = (rval,gval,bval)
-
-    config.myQueue.put((restore, ((led_colors),)))    
+    config.myQueue.put((set_led, ((led_colors),)))    
    
     
 def handle_on(on_arg):
     on = on_arg
     if(on_arg == 't'):        
-        config.myQueue.put((restore, ((led_colors),)))
+        config.myQueue.put((set_led, ((led_colors),)))
         
     if(on_arg == 'f'):
         config.myQueue.put((all_off, ()))
@@ -80,10 +77,9 @@ def parse_state():
                     handle_bri(data['bri'])
                 case 'seg':       #this sets color, but probably other things I'm not handling
                     for val in value:
-  #                      for index, led in val:
+                        #not sure what format(s) are possible in json
                       led = val['col']
-                      print("call update color")
-                      update_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
+                      set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
                       
 
                       

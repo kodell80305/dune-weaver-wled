@@ -39,7 +39,6 @@ def init_rpi():
     print("Done with rainbow")
 
 
-# Main program logic follows:
 def run_rpi_app():
     # Process arguments
     parser = argparse.ArgumentParser()
@@ -65,9 +64,6 @@ def run_rpi_app():
             colorWipe(strip, Color(0, 0, 0), 10)
     
 def update_bri(bri_arg):
-
-    #I'm not sure how brightness should work ... scale everything, including effects? (Assuming they aren't scaled already?)
-
     strip.setBrightness(bri_arg)
     strip.show()
  
@@ -77,15 +73,11 @@ def all_off():
         strip.setPixelColor(i, Color(0, 0, 0))
     strip.show()
 
-def restore(led_colors):
-    # Restore LEDs to their previous colors
-        # Restore LEDs to their previous colors
+def set_led(led_colors):
+    #set leds to the values in the list led_colors
     #breakpoint()
-    print("restore called")
     for i in range(0, strip.numPixels()):
-        led = led_colors[i]
-
-        strip.setPixelColor(i, Color(*led))
+        strip.setPixelColor(i, Color(*led_colors[i]))
     strip.show()
     
 
