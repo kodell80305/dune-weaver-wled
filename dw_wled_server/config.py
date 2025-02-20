@@ -1,5 +1,9 @@
 from queue import Queue
 myQueue = Queue()
+
+#Run in simulation mode
+simulate = False
+
 # Global power state of the LEDs
 
 #You'll need to configure the number of pixels and the type of strip you have
@@ -24,7 +28,10 @@ LED_COUNT = 60
 #SK6812W_STRIP = _rpi_ws281x.SK6812W_STRIP
 
 #default is WS2811_STRIP_GRB
-from rpi_ws281x import WS2811_STRIP_GRB
-LED_COLOR=WS2811_STRIP_GRB
+if simulate:
+    LED_COLOR=0
+else:
+    from rpi_ws281x import WS2811_STRIP_GRB
+    LED_COLOR=WS2811_STRIP_GRB
 
 

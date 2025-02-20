@@ -24,6 +24,79 @@ LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 
 strip = 0
+current_effect = 0   # 0 = no effect
+
+# empty variable declarations, to stop Python from complaining
+
+theaterChase = lambda x: x
+rainbow = lambda x: x
+rainbowCycle = lambda x: x
+theaterChaseRainbow = lambda x: x
+strip = None
+
+effects_list = [
+    {
+        "func": theaterChase,
+        "name": "theaterChase",
+        "description": "Movie theater light style chaser animation.",
+        "parameters": {
+            "wait_ms": 20,
+        }
+    },
+    {
+        "func": rainbow,
+        "name": "rainbow",
+        "description": "A smooth rainbow effect that cycles through colors",
+        "parameters": {
+            "wait_ms": 20,
+        }
+    },
+    {
+        "func": rainbowCycle,
+        "name": "rainbowCycle",
+        "description": "Draw rainbow that uniformly distributes itself across all pixels.",
+        "parameters": {
+            "speed": 50,
+            "intensity": 128
+        }
+    },
+    {
+        "func": theaterChaseRainbow,
+        "name": "theaterChaseRainbow",
+        "description": "Rainbow movie theater light style chaser animation",
+        "parameters": {
+            "speed": 50,
+            "intensity": 128
+        }
+    }
+]
+
+
+def get_effects():
+    json_effects = []
+
+    for i, effect in enumerate(effects_list):
+        # Make copy of effect before modifying it
+        effect = dict(effect)
+        # Add id to function
+        effect['id'] = i
+        del effect['func']  # Can't put functions into a JSON, so remove it
+        json_effects.append(effect)
+
+    return json_effects
+
+def run_effects(effect_id): 
+    effect = effects_list[effect_id] 
+    function = effect['func']
+    print("Running effect", effect['name'])    
+
+    function(strip)
+
+
+def update_effect(effect_id):
+    global current_effect
+    print("in update_effect()", effect_id)
+    current_effect = effect_id
 
 def init_rpi():
     global strip
@@ -40,7 +113,10 @@ def init_rpi():
 
 
 def run_rpi_app():
+    global current_effect
+
     # Process arguments
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
@@ -48,7 +124,6 @@ def run_rpi_app():
     print('Press Ctrl-C to quit.', args)
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
-        
     
     try:
         print('Waiting for cmd')      
@@ -57,6 +132,11 @@ def run_rpi_app():
             if not config.myQueue.empty():
                 func, args = config.myQueue.get()
                 func(*args)
+
+                print("current_effect", current_effect)
+                if(current_effect > 0):
+                    run_effects(current_effect)
+
 
     except Exception as e: # KeyboardInterrupt:
         breakpoint()
@@ -69,11 +149,15 @@ def update_bri(bri_arg):
  
         
 def all_off():
+    global current_effect
+    current_effect = 0
     for i in range(strip.numPixels()):
         strip.setPixelColor(i, Color(0, 0, 0))
     strip.show()
 
 def set_led(led_colors):
+    global current_effect
+    current_effect = 0
     #set leds to the values in the list led_colors
     #breakpoint()
     for i in range(0, strip.numPixels()):
@@ -81,13 +165,18 @@ def set_led(led_colors):
     strip.show()
     
 
+
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):
     """Wipe color across display a pixel at a time."""
     for i in range(strip.numPixels()):
+ 
         strip.setPixelColor(i, color)
         strip.show()
         time.sleep(wait_ms / 1000.0)
+        #every effect should return if anything is in the queue
+        if not config.myQueue.empty():
+            return
 
 
 def theaterChase(strip, color, wait_ms=50, iterations=10):
@@ -98,6 +187,9 @@ def theaterChase(strip, color, wait_ms=50, iterations=10):
                 strip.setPixelColor(i + q, color)
             strip.show()
             time.sleep(wait_ms / 1000.0)
+            #every effect should return if anything is in the queue
+            if not config.myQueue.empty():
+                return
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, 0)
 
@@ -117,10 +209,16 @@ def wheel(pos):
 def rainbow(strip, wait_ms=20, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
     for j in range(256 * iterations):
+                #every effect should return if anything is in the queue
+        if not config.myQueue.empty():
+            return
         for i in range(strip.numPixels()):
             strip.setPixelColor(i, wheel((i + j) & 255))
         strip.show()
         time.sleep(wait_ms / 1000.0)
+        #every effect should return if anything is in the queue
+        if not config.myQueue.empty():
+            return
 
 
 def rainbowCycle(strip, wait_ms=20, iterations=5):
@@ -131,7 +229,9 @@ def rainbowCycle(strip, wait_ms=20, iterations=5):
                 (int(i * 256 / strip.numPixels()) + j) & 255))
         strip.show()
         time.sleep(wait_ms / 1000.0)
-
+        #every effect should return if anything is in the queue
+        if not config.myQueue.empty():
+            return
 
 def theaterChaseRainbow(strip, wait_ms=50):
     """Rainbow movie theater light style chaser animation."""
@@ -141,7 +241,16 @@ def theaterChaseRainbow(strip, wait_ms=50):
                 strip.setPixelColor(i + q, wheel((i + j) % 255))
             strip.show()
             time.sleep(wait_ms / 1000.0)
+            #every effect should return if anything is in the queue
+            if not config.myQueue.empty():
+                return
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, 0)
 
 
+
+
+
+
+
+ 

@@ -5,7 +5,63 @@ import threading
 import config
 import requests
 import json
-from wled_rpi import set_led, all_off, update_bri
+
+
+effects = [
+    {
+      "id": 0,
+      "name": "Static",
+      "description": "Solid color lighting effect",
+      "parameters": {
+        "color": "#FF0000",
+        "brightness": 128
+      }
+    },
+    {
+      "id": 1,
+      "name": "Blink",
+      "description": "A blinking effect, alternating between on and off",
+      "parameters": {
+        "color": "#00FF00",
+        "speed": 500,
+        "blinkDuration": 200
+      }
+    },
+    {
+      "id": 2,
+      "name": "Rainbow",
+      "description": "A smooth rainbow effect that cycles through colors",
+      "parameters": {
+        "speed": 50,
+        "intensity": 128
+      }
+    },
+    {
+      "id": 3,
+      "name": "Fire",
+      "description": "Simulates the look of a fire effect with flickering lights",
+      "parameters": {
+        "color": "#FF4500",
+        "speed": 80,
+        "flickerStrength": 50
+      }
+    },
+    {
+      "id": 4,
+      "name": "Fade",
+      "description": "A smooth fading effect between colors",
+      "parameters": {
+        "colorStart": "#0000FF",
+        "colorEnd": "#FFFF00",
+        "duration": 2000
+      }
+    }
+  ]
+
+if config.simulate:
+    from wled_rpi_sim import set_led, all_off, update_bri, get_effects, update_effect
+else:
+    from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect
 
 on=False
 bri=128
@@ -26,12 +82,7 @@ app = Flask(__name__)
 def index():
     return send_from_directory(".", "index.html")
 
-@app.route("/json/eff", methods = ['GET', 'POST'])
-def send_effects():
-    return send_from_directory(".", "json_data")
-#       return jsonify("effects": [{"id": 0, "name": "Static", "description": "Solid color lighting effect", "parameters": {"color": "#FF0000", "brightness": 128}}]), 200
 
-   
 def set_color(rval, gval, bval):        #Set all leds to same color
     led_colors = [(rval, gval, bval)]*config.LED_COUNT
 
@@ -49,9 +100,28 @@ def handle_on(on_arg):
 def handle_bri(bri_arg):
     bri = bri_arg
     config.myQueue.put((update_bri, (bri,)))
+
+def handle_effect(effect_arg):
+    print("handle_effect")
+    print(effect_arg)
+    config.myQueue.put((update_effect, (effect_arg,)))
     
+@app.route("/json/eff", methods=["GET", "POST"])
+def parse_eff():
+    try:
+    
+        # Process the JSON dat here
+        response = {
+            "message": "JSON received successfully"
+        }   
+        return jsonify({"effects": get_effects()}), 200
+          
         
-@app.route("/json/state", methods=["POST"])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/json/state", methods=["GET","POST"])
 def parse_state():
     try:
         data = request.get_json()
@@ -80,7 +150,11 @@ def parse_state():
                         #not sure what format(s) are possible in json
                       led = val['col']
                       set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
-                      
+                case 'effect':
+                    handle_effect(value)
+                case _:
+                    print("no match")
+
 
                       
                     

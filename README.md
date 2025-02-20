@@ -17,4 +17,6 @@ The only things tested are the curl scripts in test.sh.  Run ./test.sh 127.0.0.1
 
 The json parsing is minimal and a I haven't implemented any info/effects yet.   I want to work out how to change the brightness while doing effects/how to cancel effects without using yet another thread spawned from the low level interface.
 
+Added the ability for effects/setting brightness with stopping effects (does cause restart right now ... not sure if this bothers me enough to fix it)  Only tested in simulation mode on windows, until I can test on pi.
+
 
