@@ -9,9 +9,12 @@ import json
 
 #state='{"state" : {"on":true,"bri":127,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]},"info":{"ver":"0.8.4","vid":1903252,"leds":{"count":20,"rgbw":true,"pin":[2],"pwr":0,"maxpwr":65000,"maxseg":1},"name":"WLEDLight","udpport":21324,"live":false,"fxcount":80,"palcount":47,"arch":"esp8266","core":"2_4_2","freeheap":13264,"uptime":17985,"opt":127,"brand":"WLED","product":"DIYlight","btype":"src","mac":"60019423b441"},"effects":["Solid","Blink","Breathe","Wipe","WipeRandom","RandomColors","Sweep","Dynamic","Colorloop","Rainbow","Scan","DualScan","Fade","Chase","ChaseRainbow","Running","Saw","Twinkle","Dissolve","DissolveRnd","Sparkle","DarkSparkle","Sparkle+","Strobe","StrobeRainbow","MegaStrobe","BlinkRainbow","Android","Chase","ChaseRandom","ChaseRainbow","ChaseFlash","ChaseFlashRnd","RainbowRunner","Colorful","TrafficLight","SweepRandom","Running2","Red&Blue","Stream","Scanner","Lighthouse","Fireworks","Rain","MerryChristmas","FireFlicker","Gradient","Loading","InOut","InIn","OutOut","OutIn","Circus","Halloween","TriChase","TriWipe","TriFade","Lightning","ICU","MultiComet","DualScanner","Stream2","Oscillate","Pride2015","Juggle","Palette","Fire2012","Colorwaves","BPM","FillNoise","Noise1","Noise2","Noise3","Noise4","Colortwinkle","Lake","Meteor","SmoothMeteor","Railway","Ripple"],"palettes":["Default","RandomCycle","PrimaryColor","BasedonPrimary","SetColors","BasedonSet","Party","Cloud","Lava","Ocean","Forest","Rainbow","RainbowBands","Sunset","Rivendell","Breeze","Red&Blue","Yellowout","Analogous","Splash","Pastel","Sunset2","Beech","Vintage","Departure","Landscape","Beach","Sherbet","Hult","Hult64","Drywet","Jul","Grintage","Rewhi","Tertiary","Fire","Icefire","Cyane","LightPink","Autumn","Magenta","Magred","Yelmag","Yelblu","Orange&Teal","Tiamat","AprilNight"]}'
 
-state = '{"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}'
+state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
 state = json.loads(state)
- 
+
+#We'll only ever care about one segment
+state['state']['seg'][0]['len'] = config.LED_COUNT
+    
 
 if config.simulate:
     from wled_rpi_sim import set_led, all_off, update_bri, get_effects, update_effect
@@ -33,28 +36,32 @@ def set_color(rval, gval, bval):        #Set all leds to same color
 
     config.myQueue.put((set_led, ((led_colors),)))    
    
-def handle_on(on_arg):
+def handle_on(on):
     global state
-    state['on'] = on
-    if(on_arg == 't'):        
+    state['state']['on'] = on
+    if(on == 't'):        
         config.myQueue.put((set_led, ((led_colors),)))
         
-    if(on_arg == 'f'):
+    if(on == 'f'):
         config.myQueue.put((all_off, ()))
         
-def handle_bri(bri_arg):
+def handle_bri(bri):
     global state
-    state['bri'] = bri_arg
+    state['state']['bri'] = bri
     config.myQueue.put((update_bri, (bri,)))
 
-def handle_effect(effect_arg):
+def handle_effect(effect_id):
     print("handle_effect")
-    print(effect_arg)
-    config.myQueue.put((update_effect, (effect_arg,)))
+    global state
+    state['state']['pl'] = -1                #cancel any playlist currently active
+    print(effect_id)
+    config.myQueue.put((update_effect, (effect_id,)))
 
-def handle_play(play_arg):
+def handle_playlist(playlist_id):
+    global state
+    state['state']['pl'] = int(playlist_id)
     print("handle_play")
-    config.myQueue.put((update_effect, (play_arg,)))
+    config.myQueue.put((update_effect, (playlist_id,)))
     
 @app.route("/json/eff", methods=["GET", "POST"])
 def parse_eff():
@@ -110,11 +117,11 @@ def parse_state():
                     print("data", data)
                     handle_effect(value)
                 case 'pl':
-                    print("play", value)
-                    handle_play(value)
+                    print("playlist", value)
+                    handle_playlist(value)
                 case 'v':
                     print("v", value)        #return the state information
-                    response = jsonify(state), 200
+                    response = state
                 case _:
                     print("no match")
                     
