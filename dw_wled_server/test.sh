@@ -1,73 +1,198 @@
 #!/bin/bash
 export WLED_IP=192.168.50.117
+export WLED_PORT=80
+export SLEEP_TIME=1
+export test_id=all
 
+# Initialize variables
+verbose=false
+
+
+# Parse options
+while getopts "vp:s:t:" opt; do
+  case $opt in
+    v)
+      verbose=true
+      ;;
+    s)
+      SLEEP_TIME="$OPTARG"
+      ;;
+    t)
+        test_id="$OPTARG"
+        ;;
+    p)
+      WLED_PORT="$OPTARG"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+echo "Remaining arguments: $@"
+
+# Remove parsed options from argument list
+shift $((OPTIND - 1))
 # Check if the argument is provided
 if [ -z "$1" ]; then
     echo "Error: WLED IP address is required."
-    echo "Usage: $0 <WLED_IP>"
+    echo "Usage: $0 <WLED_IP> [-v] [-p <WLED_PORT>]"
     exit 1
 fi
 
-# Assign the argument to a variable
 WLED_IP=$1
 
-# Now you can use the $WLED_IP variable in your script
-echo "WLED IP Address: $WLED_IP"
+test_1() {
+    echo "Turning on"
+    #Start effect number 1
+    curl -X GET "http://${WLED_IP}/json/state" -d '{"effect": 1}' -H "Content-Type: application/json"
+}
 
-#Setting new values
-#Sending a POST request to /json or /json/state with (parts of) the state object 
-#will update the respective values. Example: {"on":true,"bri":255} sets the brightness to maximum. 
-#{"seg":[{"col":[[0,255,200]]}]} sets the color of the first segment to teal. 
-#{"seg":[{"id":X,"on":"t"}]} and replacing X with the desired segment ID will toggle on or off that segment.
-DATA="{\"seg\":[{\"id\":0,\"start\":0,\"stop\":50,\"len\":50,\"grp\":1,\"spc\":0,\"on\":true,\"bri\":$BRI,\"col\":[$COLOR_SIDES,[0,0,0],[0,0,0]],\"fx\":$FX,\"sx\":9,\"ix\":51,\"pal\":$PAL,\"sel\":false,\"rev\":false,\"mi\":false},{\"id\":1,\"start\":50,\"stop\":98,\"len\":48,\"grp\":1,\"spc\":0,\"on\":true,\"bri\":$BRI,\"col\":[$COLOR_TOP,[0,0,0],[0,0,0]],\"fx\":100,\"sx\":150,\"ix\":128,\"pal\":0,\"sel\":true,\"rev\":false,\"mi\":false},{\"id\":2,\"start\":98,\"stop\":150,\"len\":52,\"grp\":1,\"spc\":0,\"on\":true,\"bri\":$BRI,\"col\":[$COLOR_SIDES,[0,0,0],[0,0,0]],\"fx\":$FX,\"sx\":9,\"ix\":51,\"pal\":$PAL,\"sel\":false,\"rev\":false,\"mi\":false}]}}}"
+test_2() {
+    response=$(curl -X POST "http://${WLED_IP}/json/eff"  -H "Content-Type: application/json")
+
+    if [ -n "$response" ]; then
+    echo "$response"
+    else
+    echo "Failed to retrieve effects list from WLED server."
+    fi
+}
+test_3() {
+    response=$(curl -X POST "http://${WLED_IP}/json/state" -d '{"on":false}' -H "Content-Type: application/json")
+
+    if [ -n "$response" ]; then
+        echo "$response"
+    else
+         "Failed to turn off the lights."
+    fi
+}
+test_4() {
+    response=$(curl -X POST "http://${WLED_IP}/json/state" -d '{"on":true, "v":true}' -H "Content-Type: application/json")
+
+    if [ -n "$response" ]; then
+    echo "$response"
+    else
+    echo "Failed to turn on the lights."
+    fi
+    echo "Back on - setting brightness to 40"
+    curl -X POST http://$WLED_IP/json/state   -d '{"bri": 40}' -H "Content-Type: application/json"
+        
+    response=$(curl -X POST "http://${WLED_IP}/json/state" -d '{"v":true}' -H "Content-Type: application/json")
+
+    if [ -n "$response" ]; then
+    echo "$response"
+    else
+    echo "Failed to turn on the lights."
+    fi
+    sleep $SLEEP_TIME
+    echo "brightness to 128"
+    curl -X POST http://$WLED_IP/json/state  -d '{"bri": 128}' -H "Content-Type: application/json"
+}
+
+test_5()  { 
+  
+    sleep $SLEEP_TIME
+    echo "Set red"
+    curl -X POST http://$WLED_IP/json/state   -d '{"seg":[{"col":[[255, 0,0]]}]}' -H "Content-Type: application/json"  
+    sleep $SLEEP_TIME
+    echo "Set green"
+    curl -X POST http://$WLED_IP/json/state  -d '{"seg":[{"col":[[0, 255,0]]}]}'  -H "Content-Type: application/json"
+    sleep $SLEEP_TIME
+    echo "Set blue"
+    curl -X POST http://$WLED_IP/json/state  -d '{"seg":[{"col":[[0, 0, 255]]}]}' -H "Content-Type: application/json" 
+    sleep $SLEEP_TIME
+}
 
 
-export SLEEP_TIME=5
+# Effect Parameters (example)
+EFFECT_ID=3        # Effect ID (e.g., 0 for "Solid", 1 for "Blink")
+COLOR="0,255,0"   # Color in RGB (e.g., "255,0,0" for Red)
+BRIGHTNESS=180    # Brightness (0 to 255)
+SPEED=5           # Speed (optional for certain effects)
+INTENSITY=4       # Intensity (optional for certain effects
+
+#
+test_6() {  
+ 
+# Send cURL request to set the effect by ID with parameters
+
+    curl -X POST "http://${WLED_IP}/json" -d '{"effect": '"$EFFECT_ID"',"effectSpeed": '"$SPEED"',"color": [255, 0, 0], "brightness": 128      
+    }'  -H "Content-Type: application/json" 
+    sleep $SLEEP_TIME
+}
+
+test_7() {
+    echo "Playing playlist 2"
+    curl -X POST "http://${WLED_IP}/json/state" -d '{"pl": 2}'  -H "Content-Type: application/json" 
+    sleep $SLEEP_TIME
+}
+
+test_8() {
+    echo "Playing playlist 1"
+    curl -X POST "http://${WLED_IP}/json/state" -d '{"pl": 1}'  -H "Content-Type: application/json" 
+    sleep $SLEEP_TIME
+}
 
 
-#Start effect number 1
-curl -X GET "http://${WLED_IP}/json/state" -d '{"effect": 1}' -H "Content-Type: application/json"
 
+# Array of test functions
+tests=(
+  test_1
+  test_2
+  test_3
+  test_4
+  test_5
+  test_6
+  test_7
+  test_8
+)
 
-response=$(curl -X POST "http://${WLED_IP}/json/eff"  -H "Content-Type: application/json")
-
-if [ -n "$response" ]; then
-  echo "$response"
-else
-  echo "Failed to retrieve effects list from WLED server."
+if [ "$test_id" = "all" ]; then
+    # Command to execute if $test_id is "all"
+    echo "Executing command for all tests"
+  # Loop through the array and run each test function
+  for test in "${tests[@]}"; do
+      eval "$test"
+  done
+  exit 0
 fi
 
-#echo "curl --header \"Content-Type: application/json\" --request POST --data \"$DATA\" http://$WLED_IP/json\n\n"
-#curl --header "Content-Type: application/json" --request POST --data "$DATA" http://$WLED_IP/json
-#echo "curl -H "Accept: application/json" http://$WLED_IP/json\n\n"
-#curl -H "Accept: application/json" http://$WLED_IP/json
-#echo "Turning on"
-#curl -X POST "http://$WLED_IP/json/state" -d '{"on":"t","v":true}' -H "Content-Type: application/json"
+# Function to run a specific test
+run_test() {
+    echo "Running test" $test_id
+  test_number="$test_id"
+  if [[ "$test_number" -ge 1 && "$test_number" -le "${#tests[@]}" ]]; then
+    test_name="${tests[test_number-1]}"
+    echo "Running $test_name..."
+    "$test_name"
+  else
+    echo "Invalid test number: $test_number"
+  fi
+}
 
-echo "Turning off"
-curl -X POST "http://$WLED_IP/json/state" -d '{"on":"f","v":true}' -H "Content-Type: application/json"
-sleep 2
-echo "Back on - setting brightness to 40"
-curl -X POST "http://$WLED_IP/json/state" -d '{"on":"t","v":true}' -H "Content-Type: application/json"
-curl -X POST http://$WLED_IP/json/state   -d '{"bri": 40}' -H "Content-Type: application/json"
+# Main script logic
+if [[ "$#" -eq 0 ]]; then
+  # Run all tests if no arguments are provided
+  echo "Running all tests..."
+  for i in "${!tests[@]}"; do
+    run_test "$((i + 1))"
+  done
+elif [[ "$1" == "-a" || "$1" == "--all" ]]; then
+    echo "Running all tests..."
+  for i in "${!tests[@]}"; do
+    run_test "$((i + 1))"
+  done
+else
+  # Run specific tests based on provided numbers
+  for arg in "$@"; do
+    run_test "$arg"
+  done
+fi
 
-
-sleep $SLEEP_TIME
-echo "brightness to 128"
-curl -X POST http://$WLED_IP/json/state  -d '{"bri": 128}' -H "Content-Type: application/json"
-
-sleep 2
-echo "Set red"
-curl -X POST http://$WLED_IP/json/state   -d '{"seg":[{"col":[[255, 0,0]]}]}' -H "Content-Type: application/json"  
-sleep 2
-echo "Set green"
-curl -X POST http://$WLED_IP/json/state  -d '{"seg":[{"col":[[0, 255,0]]}]}'  -H "Content-Type: application/json"
-sleep 2
-echo "Set blue"
-curl -X POST http://$WLED_IP/json/state  -d '{"seg":[{"col":[[0, 0, 255]]}]}' -H "Content-Type: application/json" 
-sleep 2
-echo "Set effect 2" 
-#Start effect number 2
-curl -X GET "http://${WLED_IP}/json/state" -d '{"effect": 2}' -H "Content-Type: application/json"
 
 

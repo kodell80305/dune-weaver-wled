@@ -4,8 +4,10 @@ import argparse
 import math
 from queue import Queue
 import config
-
 current_effect = 0   # 0 = no effect
+current_pl = 0     # 0 = no playlist
+
+
 strip = 0
 
 def init_rpi():
@@ -14,42 +16,43 @@ def init_rpi():
     #not rbg, rgb, grb, brg
     print("Initializing ", config.LED_COUNT)
 
-
-
-
     
 
 def set_led(led_colors):
     global current_effect
     print("in set_led()")
     current_effect = 0
+    current_pl = 0
 
 def all_off():
     global current_effect
     current_effect = 0
+    current_pl = 0
     print("all_off")
 
 def update_bri(bri_arg):
     print("update_bri")
 
 def theaterChase(strip, color, wait_ms=50, iterations=10):
-    time.sleep(1)
+    if(checkCancel()):                 
+        return
 
 def rainbow(strip, wait_ms=20, iterations=1):
     while True:
         print("in rainbow()")
-        time.sleep(1)
-        #every effect should return if anything is in the queue
-        if not config.myQueue.empty():
+        if(checkCancel()):
             return
 
 
 def rainbowCycle(strip, wait_ms=20, iterations=5):
-    time.sleep(1)
+    if(checkCancel()):
+        return
+
 
 def theaterChaseRainbow(strip, wait_ms=50):
-    time.sleep(1)
-
+    if(checkCancel(2000)):
+        return
+    
 # empty variable declarations, to stop Python from complaining
 
 theaterChase = lambda x: x
@@ -95,6 +98,11 @@ effects_list = [
     }
 ]
 
+def checkCancel(wait_ms=1000):
+    time.sleep(wait_ms/1000.0)
+    if not config.myQueue.empty():
+        return True
+    return False    
 
 def get_effects():
     json_effects = []
@@ -126,7 +134,14 @@ def run_effects(effect_id):
 def update_effect(effect_id):
     global current_effect
     print("in update_effect()", effect_id)
+    current_pl  =   0 
     current_effect = effect_id
+
+def update_playlist(playlist_id):
+    print("in update_playlist()", playlist_id)
+    current_pl = playlist_id
+    current_effect = 0
+
 
 def run_rpi_app():
     # Process arguments
@@ -151,9 +166,10 @@ def run_rpi_app():
                 func, args = config.myQueue.get()
                 func(*args)
             
+            
+            if(current_effect > 0):
                 print("current_effect", current_effect)
-                if(current_effect > 0):
-                    run_effects(current_effect)
+                run_effects(current_effect)
 
 
     except Exception as e: # KeyboardInterrupt:

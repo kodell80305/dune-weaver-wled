@@ -71,6 +71,12 @@ effects_list = [
     }
 ]
 
+def checkCancel(wait_ms=100):
+    time.sleep(wait_ms/1000.0)
+    if not config.myQueue.empty():
+        return True
+    return False    
+
 
 def get_effects():
     json_effects = []
@@ -107,10 +113,6 @@ def init_rpi():
     # Intialize the library (must be called once before other functions).
     strip.begin()
 
-    print("Doing rainbow")
-    rainbow(strip)
-    print("Done with rainbow")
-
 
 def run_rpi_app():
     global current_effect
@@ -128,20 +130,22 @@ def run_rpi_app():
     try:
         print('Waiting for cmd')      
         while True:
-      
+            time.sleep(100/1000.0)
+            
             if not config.myQueue.empty():
                 func, args = config.myQueue.get()
                 func(*args)
 
-                print("current_effect", current_effect)
-                if(current_effect > 0):
-                    run_effects(current_effect)
+            print("current_effect", current_effect)
+            if(current_effect > 0):
+                run_effects(current_effect)
 
 
     except Exception as e: # KeyboardInterrupt:
         breakpoint()
         if args.clear:
-            colorWipe(strip, Color(0, 0, 0), 10)
+            all_off()
+
     
 def update_bri(bri_arg):
     strip.setBrightness(bri_arg)
