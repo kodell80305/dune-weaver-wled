@@ -4,8 +4,8 @@ import argparse
 import math
 from queue import Queue
 import config
-current_effect = 0   # 0 = no effect
-current_pl = 0     # 0 = no playlist
+current_effect = -1
+current_pl = -1
 
 
 strip = 0
@@ -19,15 +19,15 @@ def init_rpi():
     
 
 def set_led(led_colors):
-    global current_effect
+    global current_effect, current_pl
+    current_effect = -1
+    current_pl = -1
     print("in set_led()")
-    current_effect = 0
-    current_pl = 0
 
 def all_off():
-    global current_effect
-    current_effect = 0
-    current_pl = 0
+    global current_effect, current_pl
+    current_effect = -1
+    current_pl = -1
     print("all_off")
 
 def update_bri(bri_arg):
@@ -132,15 +132,16 @@ def run_effects(effect_id):
 
 
 def update_effect(effect_id):
-    global current_effect
+    global current_effect, current_pl
     print("in update_effect()", effect_id)
-    current_pl  =   0 
+    current_pl  =  -1
     current_effect = effect_id
 
 def update_playlist(playlist_id):
+    global current_effect, current_pl   
     print("in update_playlist()", playlist_id)
     current_pl = playlist_id
-    current_effect = 0
+    current_effect = -1
 
 
 def run_rpi_app():

@@ -24,7 +24,8 @@ LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 
 strip = 0
-current_effect = 0   # 0 = no effect
+current_effect = -1   # -1 = no effect
+current_playist = -1
 
 # empty variable declarations, to stop Python from complaining
 
@@ -35,6 +36,16 @@ theaterChaseRainbow = lambda x: x
 strip = None
 
 effects_list = [
+    {
+        # Static color effect - should always be first - defines the default
+        # state of the LEDs
+        "name": "Static",
+        "description": "Solid color lighting effect",
+        "parameters": {
+            "color": "#0000FF",
+            "brightness": 128
+      }
+    },
     {
         "func": theaterChase,
         "name": "theaterChase",
@@ -71,12 +82,14 @@ effects_list = [
     }
 ]
 
+#For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
+#a command like setting the led brightness, then we'll restart the pattern.   Any other command
+#will set a different effect to run.  
 def checkCancel(wait_ms=100):
     time.sleep(wait_ms/1000.0)
     if not config.myQueue.empty():
         return True
     return False    
-
 
 def get_effects():
     json_effects = []
@@ -98,19 +111,25 @@ def run_effects(effect_id):
 
     function(strip)
 
-
 def update_effect(effect_id):
-    global current_effect
+    global current_effect, current_pl
     print("in update_effect()", effect_id)
+    current_pl  =  -1
     current_effect = effect_id
+
+def update_playlist(playlist_id):
+    global current_effect, current_pl   
+    print("in update_playlist()", playlist_id)
+    current_pl = playlist_id
+    current_effect = -1
+
 
 def init_rpi():
     global strip
-    # Create NeoPixel object with appropriate configuration.
-    #not rbg, rgb, grb, brg
+
     print("Initializing", config.LED_COUNT)
     strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, WS2811_STRIP_GBR )
-    # Intialize the library (must be called once before other functions).
+  
     strip.begin()
 
 
@@ -118,7 +137,6 @@ def run_rpi_app():
     global current_effect
 
     # Process arguments
-    
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
@@ -136,7 +154,6 @@ def run_rpi_app():
                 func, args = config.myQueue.get()
                 func(*args)
 
-            print("current_effect", current_effect)
             if(current_effect > 0):
                 run_effects(current_effect)
 
@@ -153,22 +170,23 @@ def update_bri(bri_arg):
  
         
 def all_off():
-    global current_effect
-    current_effect = 0
+    global current_effect, current_pl
+    current_effect = -1
+    current_pl = -1
     for i in range(strip.numPixels()):
         strip.setPixelColor(i, Color(0, 0, 0))
     strip.show()
 
 def set_led(led_colors):
-    global current_effect
-    current_effect = 0
+    global current_effect, current_pl
+    current_effect = -1
+    current_pl = -1
     #set leds to the values in the list led_colors
     #breakpoint()
     for i in range(0, strip.numPixels()):
         strip.setPixelColor(i, Color(*led_colors[i]))
     strip.show()
     
-
 
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):

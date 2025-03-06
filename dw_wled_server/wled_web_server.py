@@ -32,6 +32,9 @@ def index():
     return send_from_directory(".", "index.html")
 
 def set_color(rval, gval, bval):        #Set all leds to same color
+    global state
+    state['state']['pl'] = -1
+    state['state']['seg'][0]['fx'] = -1
     led_colors = [(rval, gval, bval)]*config.LED_COUNT
 
     config.myQueue.put((set_led, ((led_colors),)))    
@@ -54,12 +57,14 @@ def handle_effect(effect_id):
     print("handle_effect")
     global state
     state['state']['pl'] = -1                #cancel any playlist currently active
+    state['state']['seg'][0]['fx'] = effect_id
     print(effect_id)
     config.myQueue.put((update_effect, (effect_id,)))
 
 def handle_playlist(playlist_id):
     global state
     state['state']['pl'] = int(playlist_id)
+    state['state']['seg'][0]['fx'] = -1
     print("handle_play")
     config.myQueue.put((update_effect, (playlist_id,)))
     
