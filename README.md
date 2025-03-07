@@ -1,7 +1,7 @@
 # dw_wled_server
 Code to implement a lightweight "wled server" to control led strip in the dune_weaver project.  It's in pretty rough shape right now, but I've tested on/off, brightness and color change.   It's intended to take wled json requests and control the leds using the raspberry pi gpio (pin 18)
 
-As of 3/6/2025, it looks like this is the base interface ... web UI + mostly JSON commands.    I haven't done the web portion yet.
+As of 3/6/2025, it looks like this is the base interface ... web UI + mostly JSON commands.    Initial web UI is in ... stolen from WLED, so there are lots of things that aren't working & I've mostly tested in simulation.
 
 Simplified version of embedded web UI
   _send_command()  json commands to the /state url - it needs the following in the state response:
