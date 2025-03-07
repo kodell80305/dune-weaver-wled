@@ -2,7 +2,7 @@ from queue import Queue
 myQueue = Queue()
 
 #Run in simulation mode
-simulate = True
+simulate = False
 
 # Global power state of the LEDs
 
