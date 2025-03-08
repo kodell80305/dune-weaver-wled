@@ -6,8 +6,7 @@ simulate = False
 
 # Global power state of the LEDs
 
-#You'll need to configure the number of pixels and the type of strip you have
-LED_COUNT = 60 
+
 
 
 #SK6812_STRIP_RGBW = _rpi_ws281x.SK6812_STRIP_RGBW
@@ -23,15 +22,19 @@ LED_COUNT = 60
 #WS2811_STRIP_GBR = _rpi_ws281x.WS2811_STRIP_GBR
 #WS2811_STRIP_BRG = _rpi_ws281x.WS2811_STRIP_BRG
 #WS2811_STRIP_BGR = _rpi_ws281x.WS2811_STRIP_BGR
-#WS2812_STRIP = _rpi_ws281x.WS2812_STRIP
+#WS2811_STRIP_BGR = _rpi_ws281x.WS2812_STRIP
 #SK6812_STRIP = _rpi_ws281x.SK6812_STRIP
 #SK6812W_STRIP = _rpi_ws281x.SK6812W_STRIP
 
-#default is WS2811_STRIP_GRB
 if simulate:
     LED_COLOR=0
 else:
-    from rpi_ws281x import WS2811_STRIP_GRB
-    LED_COLOR=WS2811_STRIP_GRB
+    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
+    LED_COLOR=WS2811_STRIP_BRG
 
+
+#You'll need to configure the number of pixels and the type of strip you have
+LED_COUNT = 30
+#I use the first few leds for lighting under the table ... these are fixed to white
+SEGMENT_0_START = 3
 

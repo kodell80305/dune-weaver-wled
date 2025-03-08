@@ -128,9 +128,10 @@ def init_rpi():
     global strip
 
     print("Initializing", config.LED_COUNT)
-    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, WS2811_STRIP_GBR )
+    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, config.LED_COLOR )
   
     strip.begin()
+
 
 
 def run_rpi_app():
@@ -141,9 +142,9 @@ def run_rpi_app():
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
 
-    print('Press Ctrl-C to quit.', args)
-    if not args.clear:
-        print('Use "-c" argument to clear LEDs on exit')
+    
+    for i in range(0, config.SEGMENT_0_START):
+        strip.setPixelColor(i, Color(128,128,128))
     
     try:
         print('Waiting for cmd')      
@@ -173,8 +174,9 @@ def all_off():
     global current_effect, current_pl
     current_effect = -1
     current_pl = -1
-    for i in range(strip.numPixels()):
+    for i in range(config.SEGMENT_0_START, strip.numPixels()):
         strip.setPixelColor(i, Color(0, 0, 0))
+    
     strip.show()
 
 def set_led(led_colors):
@@ -183,7 +185,8 @@ def set_led(led_colors):
     current_pl = -1
     #set leds to the values in the list led_colors
     #breakpoint()
-    for i in range(0, strip.numPixels()):
+    print("led_color", led_colors)
+    for i in range(config.SEGMENT_0_START, strip.numPixels()):
         strip.setPixelColor(i, Color(*led_colors[i]))
     strip.show()
     
@@ -191,7 +194,7 @@ def set_led(led_colors):
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):
     """Wipe color across display a pixel at a time."""
-    for i in range(strip.numPixels()):
+    for i in range(config.SEGMENT_0_START, strip.numPixels()):
  
         strip.setPixelColor(i, color)
         strip.show()
@@ -205,14 +208,14 @@ def theaterChase(strip, color, wait_ms=50, iterations=10):
     """Movie theater light style chaser animation."""
     for j in range(iterations):
         for q in range(3):
-            for i in range(0, strip.numPixels(), 3):
+            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, color)
             strip.show()
             time.sleep(wait_ms / 1000.0)
             #every effect should return if anything is in the queue
             if not config.myQueue.empty():
                 return
-            for i in range(0, strip.numPixels(), 3):
+            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, 0)
 
 
@@ -234,7 +237,7 @@ def rainbow(strip, wait_ms=20, iterations=1):
                 #every effect should return if anything is in the queue
         if not config.myQueue.empty():
             return
-        for i in range(strip.numPixels()):
+        for i in range(config.SEGMENT_0_START, strip.numPixels()):
             strip.setPixelColor(i, wheel((i + j) & 255))
         strip.show()
         time.sleep(wait_ms / 1000.0)
@@ -246,7 +249,7 @@ def rainbow(strip, wait_ms=20, iterations=1):
 def rainbowCycle(strip, wait_ms=20, iterations=5):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     for j in range(256 * iterations):
-        for i in range(strip.numPixels()):
+        for i in range(config.SEGMENT_0_START, strip.numPixels()):
             strip.setPixelColor(i, wheel(
                 (int(i * 256 / strip.numPixels()) + j) & 255))
         strip.show()
@@ -259,14 +262,14 @@ def theaterChaseRainbow(strip, wait_ms=50):
     """Rainbow movie theater light style chaser animation."""
     for j in range(256):
         for q in range(3):
-            for i in range(0, strip.numPixels(), 3):
+            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, wheel((i + j) % 255))
             strip.show()
             time.sleep(wait_ms / 1000.0)
             #every effect should return if anything is in the queue
             if not config.myQueue.empty():
                 return
-            for i in range(0, strip.numPixels(), 3):
+            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
                 strip.setPixelColor(i + q, 0)
 
 
