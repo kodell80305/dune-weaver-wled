@@ -50,22 +50,22 @@ fi
 WLED_IP=$1
 
 #web tests
-echo -e ">>>>>Pallets:\n\n"
-curl -X GET "http://${WLED_IP}/json/pallets"  -H "Content-Type: application/json"
-echo -e "\n>>>>>fxdata"
-curl -X GET "http://${WLED_IP}/json/fxdata" -H "Content-Type: application/json"
-echo -e "\n>>>>>palx"
-curl -X GET "http://${WLED_IP}/json/palx" -H "Content-Type: application/json"
-echo -e "\n>>>>effects\n\n"
-curl -X GET "http://${WLED_IP}/json/effects" -H "Content-Type: application/json"
-echo -e "\n>>>>si\n\n"
-curl -X GET "http://${WLED_IP}/json/si" -H "Content-Type: application/json"
-echo -e "\n>>>>presets"
-curl -X GET "http://${WLED_IP}/presets.json" -H "Content-Type: application/json"
-echo -e "\n>>>>presets"
-curl -X GET "http://${WLED_IP}/ws" -H "Content-Type: application/json"
+#echo -e ">>>>>Pallets:\n\n"
+#curl -X GET "http://${WLED_IP}/json/pallets"  -H "Content-Type: application/json"
+#echo -e "\n>>>>>fxdata"
+#curl -X GET "http://${WLED_IP}/json/fxdata" -H "Content-Type: application/json"
+#echo -e "\n>>>>>palx"
+#curl -X GET "http://${WLED_IP}/json/palx" -H "Content-Type: application/json"
+#echo -e "\n>>>>effects\n\n"
+#curl -X GET "http://${WLED_IP}/json/effects" -H "Content-Type: application/json"
+#echo -e "\n>>>>si\n\n"
+#curl -X GET "http://${WLED_IP}/json/si" -H "Content-Type: application/json"
+#echo -e "\n>>>>presets"
+#curl -X GET "http://${WLED_IP}/presets.json" -H "Content-Type: application/json"
+#echo -e "\n>>>>presets"
+#curl -X GET "http://${WLED_IP}/ws" -H "Content-Type: application/json"
 
-exit 0
+
 
 test_1() {
     echo "Turning on"

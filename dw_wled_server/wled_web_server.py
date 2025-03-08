@@ -62,11 +62,13 @@ def set_color(rval, gval, bval):        #Set all leds to same color
    
 def handle_on(on):
     global state
+    print("Set on state to", on)
     state['state']['on'] = on
-    if(on == 't'):        
+    if(on):        
+        print("set all on")
         config.myQueue.put((set_led, ((led_colors),)))
-        
-    if(on == 'f'):
+    else:
+        print("calling all off")
         config.myQueue.put((all_off, ()))
         
 def handle_bri(bri):
