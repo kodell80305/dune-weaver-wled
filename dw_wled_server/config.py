@@ -7,7 +7,8 @@ simulate = False
 # Global power state of the LEDs
 
 #You'll need to configure the number of pixels and the type of strip you have
-LED_COUNT = 60 
+LED_COUNT = 60
+LED_BRIGHTNESS = 200
 
 
 #SK6812_STRIP_RGBW = _rpi_ws281x.SK6812_STRIP_RGBW
@@ -31,7 +32,7 @@ LED_COUNT = 60
 if simulate:
     LED_COLOR=0
 else:
-    from rpi_ws281x import WS2811_STRIP_GRB
-    LED_COLOR=WS2811_STRIP_GRB
+    from rpi_ws281x import WS2811_STRIP_BGR
+    LED_COLOR=WS2811_STRIP_BGR
 
 

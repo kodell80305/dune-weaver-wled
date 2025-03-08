@@ -57,6 +57,7 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     led_colors = [(rval, gval, bval)]*config.LED_COUNT
     state['state']['seg'][0]['col'][0] = [rval, gval, bval]
 
+    print("led colors", led_colors)
     config.myQueue.put((set_led, ((led_colors),)))    
    
 def handle_on(on):
@@ -248,7 +249,7 @@ def parse_json():
 
 #probably should change the port to somethings else
 
-socketio = SocketIO(app)
+#socketio = SocketIO(app)
 
 def run_flask_app():
 #run on 127.0.0.0    app.run(debug=False, use_reloader=False)
@@ -263,9 +264,9 @@ def run_flask_app():
 #socketio = SocketIO(app)
 
 
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
+#@socketio.on('connect')
+#def handle_connect():
+#    print('Client connected')
 
 #@socketio.on('message')
 #def handle_message(data):
