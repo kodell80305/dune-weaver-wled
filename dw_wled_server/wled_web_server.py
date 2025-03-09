@@ -64,6 +64,7 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     led_colors = [(rval, gval, bval)]*config.LED_COUNT
     state['state']['seg'][0]['col'][0] = [rval, gval, bval]
 
+    print("led colors", led_colors)
     config.myQueue.put((set_led, ((led_colors),)))    
    
 def handle_on(on):
@@ -85,9 +86,14 @@ def handle_bri(bri):
 def handle_effect(effect_id):
     print("handle_effect")
     global state
+    if(effect_id == 0):        #effect 0 is solid color
+        state['state']['seg'][0]['fx'] = -1
+        handle_on(True)
+        return   
+
     state['state']['pl'] = -1                #cancel any playlist currently active
     state['state']['seg'][0]['fx'] = effect_id
-    print(effect_id)
+    print("effect id is", effect_id)
     config.myQueue.put((update_effect, (effect_id,)))
 
 def handle_playlist(playlist_id):
@@ -129,7 +135,10 @@ def presets():
     
 @app.route("/json/effects", methods=["GET", "POST"])
 def parse_eff():
-      return(json.loads(effects_data))
+    var = get_effects()
+    var2 = jsonify(var)
+    return(var2)
+    # return(json.loads(effects_data))
 
 
 def extract_values(dct, lst=[], keys=[]):
@@ -177,7 +186,7 @@ def parse_state():
         print(x)
         
         for key, value in data.items() :
-            print (key, "value", value)
+            print (key, "line 185 value", value)
             match key:
                 case 'on':
                     handle_on(value)
@@ -185,22 +194,21 @@ def parse_state():
                     handle_bri(data['bri'])
                 case 'seg':       #this sets color, but probably other things I'm not handling
                     if(isinstance(value, dict)):
-                        print("value is a dict ", value['col'])
-                        led = value['col']
+                        if('col' in value):
+                            led = value['col']
+                            print("led =", led)
+                            set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
+                        if('fx' in value):
+                            handle_effect(value['fx'])
                     else:
-                        #this is a list
+                        #this is a list or a tuple
                         led = val['col']
 
-                    print("led =", led)
-
-                   # breakpoint()
-
-
-                    if isinstance(led[0], list):
-                        set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
-                    else:
-                        set_color(int(led[0]),int(led[1]), int(led[2]))
-                        
+                        if isinstance(led[0], list):
+                            set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
+                        else:
+                            set_color(int(led[0]),int(led[1]), int(led[2]))
+                
                     #for val in value:
                         #not sure what format(s) are possible in json -- tested with:
                         #square brackets - lists
