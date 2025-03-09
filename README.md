@@ -1,5 +1,10 @@
 # dw_wled_server
-Code to implement a lightweight "wled server" to control led strip in the dune_weaver project.  It's in pretty rough shape right now, but I've tested on/off, brightness and color change.   It's intended to take wled json requests and control the leds using the raspberry pi gpio (pin 18)
+
+This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  It's using the WLED code on a standalone ESP32 to control the leds for the sand table.   The project uses a raspberry pi to control a CNC board (dlc32 running Fluidnc).   An additional esp32 (or similar) is need to control the LED strip surrounding the table.    If you only need modes functions from the led, a raspberry pi is cabable of handling the power on/off, status changes, brightness and color.   I'm less intererested in showing patterns while the table is running.
+
+Since the project has integrated the WLED api & html in the interface, I wanted to provide the same function from a flask server running on the raspberry pi.   Currently (as of 3/8/2025), I've copied the web interface from WLED and wrote a script to build a functional web page from their content (modify to make flask happy, insert stub code for WebSocket & hide buttons that are non-functional.   What does work is the control of brightness, power, color chosing from the web api.   I've also implemented a set of JSON commands from the WLED json API, but I don't know if they will be compatible with what the project will do in the future.
+
+
 
 As of 3/6/2025, it looks like this is the base interface ... web UI + mostly JSON commands.    Initial web UI is in ... stolen from WLED, so there are lots of things that aren't working & I've mostly tested in simulation.
 
