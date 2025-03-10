@@ -16,8 +16,6 @@ def init_rpi():
     #not rbg, rgb, grb, brg
     print("Initializing ", config.LED_COUNT)
 
-    
-
 def set_led(led_colors):
     global current_effect, current_pl
     current_effect = -1
@@ -33,11 +31,11 @@ def all_off():
 def update_bri(bri_arg):
     print("update_bri")
 
-def theaterChase(strip, color, wait_ms=50, iterations=10):
+def theaterChase(strip, color=config.DEFAULT_COLOR, wait_ms=50, iterations=10):
     if(checkCancel()):                 
         return
 
-def rainbow(strip, wait_ms=20, iterations=1):
+def rainbow(strip, wait_ms=20, iterations=10):
     while True:
         print("in rainbow()")
         if(checkCancel()):

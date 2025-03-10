@@ -2,11 +2,11 @@ echo "Patching index.html 2"
 mkdir -p templates
 mkdir -p static/styles
 mkdir -p static/js
-cp ../../WLED/wled00/data/index.css static/styles
-cp ../../WLED/wled00/data/iro.js static/js
-cp ../../WLED/wled00/data/rangetouch.js static/js
-cp ../../WLED/wled00/data/common.js static/js
-cp ../../WLED/wled00/data/404.htm templates 
+cp ../WLED/wled00/data/index.css static/styles
+cp ../WLED/wled00/data/iro.js static/js
+cp ../WLED/wled00/data/rangetouch.js static/js
+cp ../WLED/wled00/data/common.js static/js
+cp ../WLED/wled00/data/404.htm templates 
 
 #<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 #sed "s/toggleLiveView()\"/toggleLiveView()\" hidden/g" |
