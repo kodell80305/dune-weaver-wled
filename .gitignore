@@ -1,3 +1,4 @@
 dw_led_server/__pycache__/
 .vscode/
 __pycache__/
+.venv
