@@ -6,14 +6,16 @@ import matplotlib.pyplot as plt
 import argparse
 import sys
 
-def read_segments(file_path):
+def read_segments(file_path, diameter):
     print(f"Reading segments from {file_path}...")
     with open(file_path, 'r') as file:
         segments = []
         for line in file:
             line = line.strip()
             if line and not line.startswith('#'):
-                segments.append(tuple(map(float, line.split())))
+                theta, r = map(float, line.split())
+                r *= diameter / 2  # Scale the distance to the specified diameter
+                segments.append((theta, r))
     print(f"Read {len(segments)} segments.")
     return segments
 
@@ -31,7 +33,7 @@ def filter_segments(segments, threshold_percent, diameter):
     for i in range(1, len(segments)):
         r1, theta1 = segments[i-1]
         r2, theta2 = segments[i]
-        distance = math.sqrt(r1**2 + r2**2 - 2*r1*r2*math.cos(math.radians(theta2 - theta1)))
+        distance = math.sqrt(r1**2 + r2**2 - 2*r1*r2*math.cos(theta2 - theta1))
         if distance >= threshold_distance:
             filtered_segments.append(segments[i])
     print(f"Filtered down to {len(filtered_segments)} segments.")
@@ -43,14 +45,14 @@ def generate_histogram(segments, n_buckets):
     for i in range(1, len(segments)):
         r1, theta1 = segments[i-1]
         r2, theta2 = segments[i]
-        distance = math.sqrt(r1**2 + r2**2 - 2*r1*r2*math.cos(math.radians(theta2 - theta1)))
+        distance = math.sqrt(r1**2 + r2**2 - 2*r1*r2*math.cos(theta2 - theta1))
         distances.append(distance)
     
     plt.hist(distances, bins=n_buckets)
-    plt.xlabel('Distance')
+    plt.xlabel('Distance (mm)')
     plt.ylabel('Frequency')
-    plt.title('Histogram of Path Lengths')
-    plt.show(block=False)
+    plt.title('Histogram of Path Lengths (mm)')
+    plt.show(block=True)  # Change block to True to delay until viewer dismisses it
     print("Histogram generated.")
 
 def douglas_peucker(segments, epsilon):
@@ -83,25 +85,75 @@ def douglas_peucker(segments, epsilon):
     print(f"Douglas-Peucker algorithm reduced segments to {len(result)}.")
     return result
 
-def process_files(file_paths, threshold_percent, diameter, n_buckets, epsilon, use_douglas_peucker):
+def display_file_contents(file_path, diameter):
+    print(f"Contents of {file_path}:")
+    segments = read_segments(file_path, diameter)
+    plot_segments(segments, f"Segments from {file_path}")
+
+def calculate_total_path_length(segments):
+    total_length = 0.0
+    for i in range(1, len(segments)):
+        r1, theta1 = segments[i-1]
+        r2, theta2 = segments[i]
+        distance = math.sqrt(r1**2 + r2**2 - 2*r1*r2*math.cos(theta2 - theta1))
+        total_length += distance
+    return total_length
+
+def plot_segments(segments, title, ax=None, color='white', linewidth=0.01):
+    theta = [theta for theta, r in segments]  # No conversion to radians needed
+    r = [r for theta, r in segments]
+    if ax is None:
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.plot(theta, r, marker='o', color=color, linewidth=linewidth)
+        ax.set_ylim(0, max(r))
+        ax.set_title(title)
+        ax.set_facecolor((210, 87, 51))  # Light brown
+        plt.show(block=True)
+    else:
+        ax.plot(theta, r, marker='o', color=color, linewidth=linewidth)
+        ax.set_ylim(0, max(r))
+        ax.set_title(title)
+        ax.set_facecolor('brown')
+
+def process_files(file_paths, threshold_percent, diameter, n_buckets, epsilon, use_douglas_peucker, show_histogram):
     for file_path in file_paths:
-        segments = read_segments(file_path)
+        print(f"Original file: {file_path}")
+        segments = read_segments(file_path, diameter)
+        original_length = calculate_total_path_length(segments)
+        print(f"Total path length before processing: {original_length:.2f} mm")
+        
         if use_douglas_peucker:
             processed_segments = douglas_peucker(segments, epsilon)
         else:
             processed_segments = filter_segments(segments, threshold_percent, diameter)
+        
+        processed_length = calculate_total_path_length(processed_segments)
+        print(f"Total path length after processing: {processed_length:.2f} mm")
+        
         output_file_path = f"processed_{os.path.basename(file_path)}"
         write_segments(output_file_path, processed_segments)
-        generate_histogram(processed_segments, n_buckets)
+        
+        print(f"Processed file: {output_file_path}")
+        
+        fig, axs = plt.subplots(1, 2, figsize=(14, 7), subplot_kw={'projection': 'polar'})
+        plot_segments(segments, 'Original Segments', ax=axs[0], color='white', linewidth=0.01)
+        plot_segments(processed_segments, 'Processed Segments', ax=axs[1], color='white', linewidth=0.01)
+        axs[0].set_title('Original Segments')
+        axs[1].set_title('Processed Segments')
+        plt.show(block=True)
+        
+        if show_histogram:
+            generate_histogram(processed_segments, n_buckets)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process and trim path segments.')
     parser.add_argument('file_paths', nargs='+', help='List of file paths to process')
     parser.add_argument('--threshold_percent', type=float, default=0.5, help='Threshold percent for filtering segments (default: 0.5)')
     parser.add_argument('--diameter', type=float, default=40, help='Diameter of the circle (default: 40)')
-    parser.add_argument('--n_buckets', type=int, default=10, help='Number of buckets for the histogram (default: 10)')
+    parser.add_argument('--n_buckets', type=int, default=200, help='Number of buckets for the histogram (default: 10)')
     parser.add_argument('--epsilon', type=float, help='Epsilon value for Douglas-Peucker algorithm. A reasonable range is 0.1 to 10.0. It determines the maximum distance a point can deviate from the line before it is considered significant.')
     parser.add_argument('--use_douglas_peucker', action='store_true', help='Use Douglas-Peucker algorithm for trimming segments')
+    parser.add_argument('--show_histogram', action='store_true', help='Show histogram of path lengths')
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -112,8 +164,8 @@ if __name__ == "__main__":
     if args.use_douglas_peucker and args.epsilon is None:
         parser.error("--epsilon is required when --use_douglas_peucker is specified")
 
-    process_files(args.file_paths, args.threshold_percent, args.diameter, args.n_buckets, args.epsilon, args.use_douglas_peucker)
+    process_files(args.file_paths, args.threshold_percent, args.diameter, args.n_buckets, args.epsilon, args.use_douglas_peucker, args.show_histogram)
 
 # Example usage:
-# python trim.py file1.thr file2.thr --threshold_percent 5 --diameter 100 --n_buckets 10
-# python trim.py file1.thr file2.thr --epsilon 1.0 --use_douglas_peucker
+# python trim.py file1.thr file2.thr --threshold_percent 5 --diameter 100 --n_buckets 10 --show_histogram
+# python trim.py file1.thr file2.thr --epsilon 1.0 --use_douglas_peucker --show_histogram
