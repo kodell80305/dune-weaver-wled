@@ -1,4 +1,13 @@
-echo "Patching index.html 2"
+#Need to update the WLED submodule first
+#cd ..
+#git submodule update --init --recursive
+#cd path/to/submodule
+#git fetch
+#git checkout main
+#git pull origin main
+#Don't worry about WLED changing ....
+
+echo "Patching index.htm"
 mkdir -p templates
 mkdir -p static/styles
 mkdir -p static/js
@@ -10,7 +19,7 @@ cp ../WLED/wled00/data/404.htm templates
 
 #<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 #sed "s/toggleLiveView()\"/toggleLiveView()\" hidden/g" |
-cat  ../../WLED/wled00/data/index.htm | sed "s/index\.css/ {{ url_for('static', filename='styles\/index.css') }}/g" | 
+cat  ../WLED/wled00/data/index.htm | sed "s/index\.css/ {{ url_for('static', filename='styles\/index.css') }}/g" | 
 sed "s/rangetouch\.js/{{ url_for('static', filename='js\/rangetouch.js') }}/g" |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" |
 sed "s/index\.js/{{ url_for('static', filename='js\/index.js') }}/g"  |
@@ -85,10 +94,10 @@ EOF
 #last is ugly hack, my brain is too tired to deal with sed right now ..
 #sed 's/if (!s) return false/return false/' >> static/js/index.js
 echo "$insert_stub"  > static/js/index.js
-cat ../../WLED/wled00/data/index.js |
+cat ../WLED/wled00/data/index.js |
 sed "s/WebSocket/StubWebSocket/g" |
 sed "s/var useWs = (ws && ws.readyState === StubWebSocket.OPEN);/var useWs = false/" >> static/js/index.js
-cat ../../WLED/wled00/data/settings.htm |
+cat ../WLED/wled00/data/settings.htm |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" >> templates/settings.htm
 
 echo DONE
