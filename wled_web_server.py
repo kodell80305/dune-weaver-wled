@@ -54,18 +54,17 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     led_colors = [(rval, gval, bval)]*config.LED_COUNT
     state['state']['seg'][0]['col'][0] = [rval, gval, bval]
 
-    print("led colors", led_colors)
+    print("set_color", led_colors[0])
     config.myQueue.put((set_led, ((led_colors),)))    
    
 def handle_on(on):
     global state
-    print("Set on state to", on)
     state['state']['on'] = on
     if(on):        
-        print("set all on")
+        print("set power on")
         config.myQueue.put((set_led, ((led_colors),)))
     else:
-        print("calling all off")
+        print("set power off")
         config.myQueue.put((all_off, ()))
         
 def handle_bri(bri):
@@ -74,7 +73,7 @@ def handle_bri(bri):
     config.myQueue.put((update_bri, (bri,)))
 
 def handle_effect(effect_id):
-    print("handle_effect")
+    print(f'handle_effect({effect_id})')
     global state
     if(effect_id == 0):        #effect 0 is solid color
         state['state']['seg'][0]['fx'] = -1
@@ -83,14 +82,13 @@ def handle_effect(effect_id):
 
     state['state']['pl'] = -1                #cancel any playlist currently active
     state['state']['seg'][0]['fx'] = effect_id
-    print("effect id is", effect_id)
     config.myQueue.put((update_effect, (effect_id,)))
 
 def handle_playlist(playlist_id):
     global state
     state['state']['pl'] = int(playlist_id)
     state['state']['seg'][0]['fx'] = -1
-    print("handle_play")
+    print(f'handle_playlist({playlist_id})')
     config.myQueue.put((update_effect, (playlist_id,)))
 
 
@@ -131,22 +129,6 @@ def parse_eff():
     # return(json.loads(effects_data))
 
 
-def extract_values(dct, lst=[], keys=[]):
-    if not isinstance(dct, (list, dict)):
-        print("this is not a (list,dict)", "keys ", keys, "dct:", dct)
-        lst.append(('_'.join(keys), dct))
-    elif isinstance(dct, list):
-        for i in dct:
-            print("this is a list i:", i, " lst: ", lst, " keys:" , keys)
-            extract_values(i, lst, keys)
-    elif isinstance(dct, dict):
-        print("this is a dict::", dct) 
-        for k, v in dct.items():
-            keys.append(k)
-            extract_values(v, lst, keys)
-            keys.remove(k)
-    return lst
-
 
 @app.route("/json/state", methods=["GET","POST"])
 def parse_state():
@@ -168,15 +150,10 @@ def parse_state():
             "message": "JSON received successfully",
             "received_data": data
         }
-        print(json.dumps(data, indent=4))
-        
-    
-        print("extract values")
-        x = extract_values(data)
-        print(x)
+        #print("data", data)
+
         
         for key, value in data.items() :
-            print (key, "line 185 value", value)
             match key:
                 case 'on':
                     handle_on(value)
@@ -186,53 +163,29 @@ def parse_state():
                     if(isinstance(value, dict)):
                         if('col' in value):
                             led = value['col']
-                            print("led =", led)
                             set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
                         if('fx' in value):
                             handle_effect(value['fx'])
                     else:
-                        #this is a list or a tuple
                         led = val['col']
 
                         if isinstance(led[0], list):
                             set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
                         else:
                             set_color(int(led[0]),int(led[1]), int(led[2]))
-                
-                    #for val in value:
-                        #not sure what format(s) are possible in json -- tested with:
-                        #square brackets - lists
-                        #curly - dictionaries
-                        #parantheses 
-                        
-                        #curl -X POST http://$WLED_IP/json/state   -d '{"seg":[{"col":[[255, 0,0]]}]}' -H "Content-Type: application/json"  
-                        #wled wants:
-                        #"seg": { "col": [[255,48, 52, 0],[],[]]},"v": true,"time": 1741304296}
 
-                    #   print("val is", val)
-                    #    if(not isinstance(val, str)):
-                    #        led = val['col']
-                    #        print("val is", val, "led is", led ) 
-                    #        if isinstance(led[0], list):
-                    #            set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
-                    #        else:
-                    #            set_color(int(led[0]),int(led[1]), int(led[2]))
                     response = state
                 case 'effect':
-                    print("data", data)
                     handle_effect(value)
                 case 'pl':
-                    print("playlist", value)
                     handle_playlist(value)
                 case 'v':
-                    print("v", value)        #return the state information
                     response = state
                 case 'time':
                     response = state        #should we do anything with this?
                 case _:
                     print("no match", key)
 
-        print("response ", response)  
         return jsonify(response), 200
         
     except Exception as e:

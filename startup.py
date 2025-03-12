@@ -14,6 +14,9 @@ from wled_rpi import init_rpi, run_rpi_app
 #The run_rpi_app() function is the main loop that runs the effects.  It will run until the program is terminated.  The flask server runs in a separate thread
 #and will continue to run until the program is terminated.  The flask server is used to send commands to the rpi app to change the effect or the playlist
 #The rpi app will run the effect until it is interrupted by a command from the flask server.  
+
+if config.simulate:
+    print("WARNING - You are running in simulation mode - no hardware will be controlled.  Set simulate=False in config.py to run on hardware")
 init_rpi()
 start_flask()
 run_rpi_app()
