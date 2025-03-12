@@ -10,7 +10,7 @@ import json
 
 state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
 
-app = None
+app = Flask(__name__, static_folder='static')
 
 pallets_data="[\n\"Default\",\"* Random Cycle\",\"* Color 1\",\"* Colors 1&2\",\"* Color Gradient\",\"* Colors Only\",\"Party\",\"Cloud\",\"Lava\",\"Ocean\",\n\"Forest\",\"Rainbow\",\"Rainbow Bands\",\"Sunset\",\"Rivendell\",\"Breeze\",\"Red & Blue\",\"Yellowout\",\"Analogous\",\"Splash\",\n\"Pastel\",\"Sunset 2\",\"Beach\",\"Vintage\",\"Departure\",\"Landscape\",\"Beech\",\"Sherbet\",\"Hult\",\"Hult 64\",\n\"Drywet\",\"Jul\",\"Grintage\",\"Rewhi\",\"Tertiary\",\"Fire\",\"Icefire\",\"Cyane\",\"Light Pink\",\"Autumn\",\n\"Magenta\",\"Magred\",\"Yelmag\",\"Yelblu\",\"Orange & Teal\",\"Tiamat\",\"April Night\",\"Orangery\",\"C9\",\"Sakura\",\n\"Aurora\",\"Atlantica\",\"C9 2\",\"C9 New\",\"Temperature\",\"Aurora 2\",\"Retro Clown\",\"Candy\",\"Toxy Reaf\",\"Fairy Reaf\",\n\"Semi Blue\",\"Pink Candy\",\"Red Reaf\",\"Aqua Flash\",\"Yelblu Hot\",\"Lite Light\",\"Red Flash\",\"Blink Red\",\"Red Shift\",\"Red Tide\",\n\"Candy2\"\n]"
 fxdata_data="[\"\",\"!,Duty cycle;!,!;!;01\",\"!;!,!;!;01\",\"!,!;!,!;!\",\"!;;!\",\"!,Fade time;;!;01\",\"!,!;!,!;!\",\"!,!,,,,Smooth;;!\",\"!,Saturation;;!;01\",\"!,Size;;!\",\"!,# of dots,,,,,Overlay;!,!,!;!\",\"!,# of dots,,,,,Overlay;!,!,!;!\",\"!;!,!;!;01\",\"!,Gap size;!,!;!\",\"!,Gap size;,!;!\",\"!,Wave width;!,!;!\",\"!,Width;!,!;!\",\"!,!;!,!;!;;m12=0\",\"Repeat speed,Dissolve speed,,,,Random;!,!;!\",\"Repeat speed,Dissolve speed;,!;!\",\"!,,,,,,Overlay;!,!;!;;m12=0\",\"!,!,,,,,Overlay;Bg,Fx;!;;m12=0\",\"!,!,,,,,Overlay;Bg,Fx;!;;m12=0\",\"!;!,!;!;01\",\"!;,!;!;01\",\"!,!;!,!;!;01\",\"Frequency,Blink duration;!,!;!;01\",\"!,Width;!,!;!;;m12=1\",\"!,Width;!,!,!;!\",\"!,Width;!,,!;!\",\"!,Width;!,!;!\",\"!;Bg,Fx;!\",\"!;!,!;!\",\"!,Size;Bg;!\",\"!,Saturation;1,2,3;!\",\"!,US style;,!;!\",\"!;;!\",\"!,Width;!,!;!\",\"!,!;1,2,3;!;;sx=24,pal=50\",\"!,Zone size;;!\",\"!,Fade rate;!,!;!;;m12=0\",\"!,Fade rate;!,!;!\",\",Frequency;!,!;!;12;ix=192,pal=11\",\"!,Spawning rate;!,!;!;12;ix=128,pal=0\",\"!,Width,,,,One color;!,!;!;;sx=0,ix=0,pal=11,m12=1\",\"!,!;!;!;01\",\"!,Spread;!,!;!;;ix=16\",\"!,Fade;!,!;!;;ix=16\",\"!,# of balls,,,,Collisions,Overlay,Trails;!,!,!;!;1;m12=1\",\"!,# of flashers;!,!;!\",\"!,Dot size,,,,,Overlay;1,2,Bg;!\",\"!,!;!,!;!;;m12=0\",\"!,Wave width;L,!,R;!\",\"\",\"!,Size;1,2,3;!\",\"!;1,2,3;!\",\"!;1,2,3;!\",\"!,!,,,,,Overlay;!,!;!\",\"!,!,,,,,Overlay;!,!;!\",\"\",\"!,Fade rate;!,!,!;!;;m12=0\",\"!;;\",\"\",\"!;;\",\"!,Trail;;!;;sx=64,ix=128\",\"Cycle speed;;!;;c3=0,o2=0\",\"Cooling,Spark rate,,,Boost;;!;1;sx=64,ix=160,m12=1\",\"!,Hue;!;!\",\"!;!;!;;sx=64\",\"!;!;!\",\"!;!;!\",\"!;!;!\",\"!;!;!\",\"!;!;!\",\"Fade speed,Spawn speed;;!;;m12=0\",\"!;Fx;!\",\"!,Trail,,,,Gradient;;!;1\",\"!,Trail,,,,Gradient;;!;1\",\"!,Smoothness;1,2;!\",\"!,Wave #,,,,,Overlay;,!;!;12\",\"!,Twinkle rate,,,,Cool;!,!;!\",\"!,Twinkle rate,,,,Cool;!,!;!\",\"Duration,Eye fade time,,,,,Overlay;!,!;!;12\",\"Fg size,Bg size;Fg,!;!;;pal=0\",\",Size;1,2,3;;;pal=0\",\"Spread,Width,,,,,Overlay;!,!;!\",\"Spread,Width,,,,,Overlay;!,!;!\",\"!,!,,,,,Overlay;1,2,Glitter color;!;;pal=0,m12=0\",\"!,!;!,!;!;01;sx=96,ix=224,pal=0\",\"Chance,Fragments,,,,,Overlay;,!;!;;pal=11,m12=0\",\"Gravity,Firing side;!,!;!;12;pal=11,ix=128\",\"Gravity,# of balls,,,,,Overlay;!,!,!;!;1;m12=1\",\"!,Trail;!,!,!;!\",\"!,Trail;!,!,!;!\",\"!,Trail;,,!;!\",\"!,!,,,,,Overlay;!,!,!;!;;m12=1\",\"Gravity,# of drips,,,,,Overlay;!,!;!;;m12=1\",\"Phase,!;!;!\",\",% of fill,,,,One color;!,!;!\",\"!,Wave #;;!;12\",\"!,!;!,!;!;01;m12=1\",\"!,Angle;;!;;pal=51\",\"!,!;!,!;!;;sx=96,ix=224,pal=0\",\",!;Bg,,Glitter color;;;m12=0\",\"Time [min],Width;;!;;sx=60\",\"!,!;!,!;!\",\"!,Intensity;!,!;!;;m12=0\",\"!,Scale;;!\",\"\",\"!,!;!,!;!\",\"!,Zones;;!;;m12=1\",\"!,Gap size;!,!;!\",\"!,# of shadows;!;!\",\"!,!;;!\",\"\",\"Shift speed,Blend speed;;!\",\"!,!;;\",\"!,!;;!\",\"!,Blur;;!;2\",\"!,Blur;;;2\",\"Fade rate,Blur;;!;2\",\"!,# blobs,Blur,Trail;!;!;2;c1=8\",\"!,Y Offset,Trail,Font size,Rotate,Gradient,Overlay,Reverse;!,!,Gradient;!;2;ix=128,c1=0,rev=0,mi=0,rY=0,mY=0\",\"Fade,Blur;;;2\",\"!,Scale;;;2\",\"!,Smoothness;;!;2\",\"!,,Offset X,Offset Y,Legs;;!;2;\",\"!,,Amplitude 1,Amplitude 2,Amplitude 3;;!;2\",\"Fade rate,# of pixels;!,!;!;1v;m12=0,si=0\",\"!,Sensitivity;!,!;!;1v;ix=64,m12=2,si=0\",\"!,# of balls;!,!;!;1v;m12=0,si=0\",\"!,Brightness;!,!;!;1v;ix=64,m12=2,si=1\",\"Rate of fall,Sensitivity;!,!;!;1v;ix=128,m12=2,si=0\",\"Phase,# of pixels;!,!;!;1v;sx=128,ix=128,m12=0,si=0\",\"Fade rate,Puddle size;!,!;!;1v;m12=0,si=0\",\"Fade rate,Max. length;!,!;!;1v;ix=128,m12=1,si=0\",\"Fade rate,Width;!,!;!;1v;ix=128,m12=2,si=0\",\"Speed,Sound effect,Low bin,High bin,Pre-amp;;;1f;m12=2,si=0\",\"Speed,Sound effect,Low bin,High bin,Sensitivity;;;1f;m12=3,si=0\",\"Fade speed,Ripple decay,# of bands,,,Color bars;!,,Peaks;!;2f;c1=255,c2=64,pal=11,si=0\",\"!,Adjust color,Select bin,Volume (min);!,!;!;1f;c2=0,m12=2,si=0\",\"Fade rate,Starting color and # of pixels;!,!,;!;1f;m12=0,si=0\",\"\",\"!,!;;;1v;m12=2,si=0\",\"Fade rate,Puddle size,Select bin,Volume (min);!,!;!;1v;c2=0,m12=0,si=0\",\"Speed of perlin movement,Fade rate;!,!;!;1f;m12=0,si=0\",\"!,Scale;;!;2\",\"!,# of pixels,Fade rate;!,!;!\",\"Fade rate,Max # of ripples,Select bin,Volume (min);!,!;!;1v;c2=0,m12=0,si=0\",\"X scale,Y scale,,,,Palette;;!;2;pal=66\",\",,,,Blur;;!;2\",\"\",\"Scroll speed,Blur;;!;2\",\"!,Spawning rate,Trail,,,Custom color;Spawn,Trail;;2\",\"!;;!;2\",\"Fade rate,Starting color;!,!;!;1f;m12=0,si=0\",\"Rate of fall,Sensitivity;!,!;!;1v;ix=128,m12=2,si=0\",\"Rate of fall,Sensitivity;!,!;!;1v;ix=128,m12=3,si=0\",\"Rate of fall,Sensitivity;!,!;!;1f;ix=128,m12=0,si=0\",\"Speed;;;1f;m12=2,si=0\",\"Scroll speed,,# of bands;;;2f;si=0\",\"\",\"!,Blur;;!;2\",\"Fade rate,Blur;!,Color mix;!;1f;m12=0,si=0\",\"Rotation speed,Blur amount;;!;2\",\"Amplification,Sensitivity;;!;2v;ix=64,si=0\",\"Variance,Brightness;;;2\",\"Speed,# of lines,,,Blur,Gradient,,Dots;;!;2;c3=16\",\",Max iterations per pixel,X center,Y center,Area size;!;!;2;ix=24,c1=128,c2=128,c3=16\",\"\",\"\",\"\",\"!;!,!;!;2\",\"X scale,Y scale,,,Sharpness;;!;2\",\"!,Scale;;;2\",\"!,Sensitivity,Blur;,Bg Swirl;!;2v;ix=64,si=0\",\"X frequency,Fade rate,,,Speed;!;!;2;;c3=15\",\"X frequency,Y frequency,Blur;;!;2\",\"Speed,,Fade,Blur;;!;2\",\"Hue speed,Effect speed;;\",\"X scale,Y scale,,,Speed;!;!;2\",\"!,Dot distance,Fade rate,Blur;;!;2\",\"Scroll speed,Y frequency;;!;2\",\"Fade rate,Outer Y freq.,Outer X freq.,Inner X freq.,Inner Y freq.,Solid;!;!;2;pal=11\",\"!,Brightness variation,Starting color,Range of colors,Color variation;!;!\",\";!,!;!;1f;m12=1,si=0\",\"Color speed,Dance;Head palette,Arms & Legs,Eyes & Mouth;Face palette;2f;si=0\"]"
@@ -35,6 +35,7 @@ app = Flask(__name__, static_folder='static')
 # Route to serve the HTML file
 @app.route('/')
 def index():
+    print("index")
     return render_template('index.htm')
 
 
@@ -62,6 +63,7 @@ def handle_on(on):
     state['state']['on'] = on
     if(on):        
         print("set power on")
+        [config.DEFAULT_COLOR]*config.LED_COUNT
         config.myQueue.put((set_led, ((led_colors),)))
     else:
         print("set power off")
@@ -69,6 +71,7 @@ def handle_on(on):
         
 def handle_bri(bri):
     global state
+    print(f'handle_bri({bri})')
     state['state']['bri'] = bri
     config.myQueue.put((update_bri, (bri,)))
 
@@ -141,7 +144,6 @@ def parse_state():
 
         data = request.get_json()
         
-        print("parse state")
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
         

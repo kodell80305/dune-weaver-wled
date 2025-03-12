@@ -6,6 +6,11 @@
 #git checkout main
 #git pull origin main
 #Don't worry about WLED changing ....
+#git submodule update --remote --merge
+#this next one might work ..
+#Just add files named post-checkout and post-merge to your .git/hooks directory of the relevant repositories, and put the following into each of them:
+#!/bin/sh
+#git submodule update --init --recursive
 
 
 echo "Building web interface"

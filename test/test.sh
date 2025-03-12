@@ -4,6 +4,12 @@ export WLED_PORT=80
 export SLEEP_TIME=1
 export test_id=all
 
+
+#curl -L https://github.com/kward/shunit2/archive/refs/heads/master.zip -o shunit2.zip
+#unzip shunit2.zip -d test
+#mv test/shunit2-master test/shunit2
+#rm shunit2.zip
+
 # Initialize variables
 verbose=false
 
