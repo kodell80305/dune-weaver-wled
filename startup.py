@@ -8,10 +8,7 @@ from queue import Queue
 import config
 
 from wled_web_server import start_flask
-if config.simulate:
-    from wled_rpi_sim import init_rpi, run_rpi_app
-else:
-    from wled_rpi import init_rpi, run_rpi_app
+from wled_rpi import init_rpi, run_rpi_app
 
 #The order seems to be impportant here - I'm not sure why we need to start the pixel strip before starting the flask server, but it seems to work
 #The run_rpi_app() function is the main loop that runs the effects.  It will run until the program is terminated.  The flask server runs in a separate thread

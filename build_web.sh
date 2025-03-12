@@ -7,19 +7,24 @@
 #git pull origin main
 #Don't worry about WLED changing ....
 
-echo "Patching index.htm"
+
+echo "Building web interface"
 mkdir -p templates
 mkdir -p static/styles
 mkdir -p static/js
-cp ../WLED/wled00/data/index.css static/styles
-cp ../WLED/wled00/data/iro.js static/js
-cp ../WLED/wled00/data/rangetouch.js static/js
-cp ../WLED/wled00/data/common.js static/js
-cp ../WLED/wled00/data/404.htm templates 
+
+echo "Copying files index.scss, iro.js, rangetouch.js, common.js, 404.htm"
+cp WLED/wled00/data/index.css static/styles
+cp WLED/wled00/data/iro.js static/js
+cp WLED/wled00/data/rangetouch.js static/js
+cp WLED/wled00/data/common.js static/js
+cp WLED/wled00/data/404.htm templates 
 
 #<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 #sed "s/toggleLiveView()\"/toggleLiveView()\" hidden/g" |
-cat  ../WLED/wled00/data/index.htm | sed "s/index\.css/ {{ url_for('static', filename='styles\/index.css') }}/g" | 
+echo "Patching index.htm"
+
+cat  WLED/wled00/data/index.htm | sed "s/index\.css/ {{ url_for('static', filename='styles\/index.css') }}/g" | 
 sed "s/rangetouch\.js/{{ url_for('static', filename='js\/rangetouch.js') }}/g" |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" |
 sed "s/index\.js/{{ url_for('static', filename='js\/index.js') }}/g"  |
@@ -29,7 +34,7 @@ sed "s/settings');./settings');\" hidden/g" |
 sed "s/iro\.js/{{ url_for('static', filename='js\/iro.js') }}/g" > templates/index.htm
 #index.js wants websocket ... let's create a fake web socket class
 
-
+echo "Create StubWebSocket class"
 insert_stub=$(cat <<EOF
 class StubWebSocket {
   constructor(url) {
@@ -94,13 +99,12 @@ EOF
 #last is ugly hack, my brain is too tired to deal with sed right now ..
 #sed 's/if (!s) return false/return false/' >> static/js/index.js
 echo "$insert_stub"  > static/js/index.js
-cat ../WLED/wled00/data/index.js |
+cat WLED/wled00/data/index.js |
 sed "s/WebSocket/StubWebSocket/g" |
 sed "s/var useWs = (ws && ws.readyState === StubWebSocket.OPEN);/var useWs = false/" >> static/js/index.js
-cat ../WLED/wled00/data/settings.htm |
+cat WLED/wled00/data/settings.htm |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" >> templates/settings.htm
 
-echo DONE
 
 
 

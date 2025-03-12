@@ -6,11 +6,51 @@
 # various animations on a strip of NeoPixels.
 
 import time
+#!/usr/bin/env python3
+# NeoPixel library strandtest example
+# Author: Tony DiCola (tony@tonydicola.com)
+#
+# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
+# various animations on a strip of NeoPixels.
+
+import time
 import argparse
 import math
 from queue import Queue
-from rpi_ws281x import *
 import config
+
+if config.simulate:
+    class PixelStrip:
+        def __init__(self, num, pin, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None):
+            self.num = num
+            self.pin = pin
+            self.freq_hz = freq_hz
+            self.dma = dma
+            self.invert = invert
+            self.brightness = brightness
+            self.channel = channel
+            self.strip_type = strip_type
+            self.pixels = [(0, 0, 0)] * num
+
+        def begin(self):
+            print("Simulated PixelStrip initialized")
+
+        def show(self):
+            print("Simulated PixelStrip show")
+
+        def setPixelColor(self, n, color):
+            self.pixels[n] = color
+
+        def setBrightness(self, brightness):
+            self.brightness = brightness
+
+        def numPixels(self):
+            return self.num
+
+    def Color(red, green, blue):
+        return (red, green, blue)
+else:
+    from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
 
 
 LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
@@ -27,7 +67,7 @@ theaterChaseRainbow = lambda x: x
 strip = None
 current_effect = -1   # -1 = no effect
 current_playist = -1
-current_color=config.DEFAULT_COLOR
+current_color = config.DEFAULT_COLOR
 
 
 def wheel(pos):
@@ -81,8 +121,6 @@ def theaterChase(strip, color=Color(*current_color), wait_ms=50, iterations=10):
                 strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
-
-
 
 
 def rainbowCycle(strip, wait_ms=20, iterations=5):
@@ -206,7 +244,6 @@ def init_rpi():
     strip.begin()
 
 
-
 def run_rpi_app():
     global current_effect
 
@@ -264,7 +301,6 @@ def set_led(led_colors):
     for i in range(config.SEGMENT_0_START, strip.numPixels()):
         strip.setPixelColor(i, Color(*led_colors[i]))
     strip.show()
-    
 
 
 
@@ -274,4 +310,5 @@ def set_led(led_colors):
 
 
 
- 
+
+
