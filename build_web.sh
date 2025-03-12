@@ -1,16 +1,7 @@
 #Need to update the WLED submodule first
 #cd ..
-#git submodule update --init --recursive
-#cd path/to/submodule
-#git fetch
-#git checkout main
-#git pull origin main
-#Don't worry about WLED changing ....
-#git submodule update --remote --merge
-#this next one might work ..
-#Just add files named post-checkout and post-merge to your .git/hooks directory of the relevant repositories, and put the following into each of them:
-#!/bin/sh
-#git submodule update --init --recursive
+#git submodule update --init 
+#git submodule update
 
 
 echo "Building web interface"
@@ -105,7 +96,7 @@ file_to_patch="path/to/your/file.js"
 
 # Define the effects to insert
 insert_effects=$(cat <<EOF
-var effects[] = [
+var effects = [
     ['0', "Solid"],
     ['9', "Rainbow"],
     ['13', "Theater"],
