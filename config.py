@@ -16,7 +16,7 @@
 #SK6812W_STRIP = _rpi_ws281x.SK6812W_STRIP
 
 #Run in simulation mode - for testing only
-simulate = True
+simulate = False
 #You'll need to configure the number of pixels and the type of strip you have.   Also if you want to have the first SEGMENT_0_START pixels be used for undertable
 #lighting, set SEGMENT_0_START.  Otherwise make it 0.  These pixels will always be white, but will respond to brightness/power on or off
 LED_COUNT = 87

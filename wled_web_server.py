@@ -35,6 +35,7 @@ app = Flask(__name__, static_folder='static')
 # Route to serve the HTML file
 @app.route('/')
 def index():
+    print("index")
     return render_template('index.htm')
 
 
@@ -69,6 +70,7 @@ def handle_on(on):
         
 def handle_bri(bri):
     global state
+    print(f'handle_bri({bri})')
     state['state']['bri'] = bri
     config.myQueue.put((update_bri, (bri,)))
 
@@ -141,7 +143,6 @@ def parse_state():
 
         data = request.get_json()
         
-        print("parse state")
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
         
