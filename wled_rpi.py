@@ -6,20 +6,20 @@
 # various animations on a strip of NeoPixels.
 
 import time
-#!/usr/bin/env python3
-# NeoPixel library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.
-
-import time
 import argparse
 import math
 from queue import Queue
 import config
+import importlib
+import json
 
-if config.simulate:
+# Check if rpi_ws281x is available
+rpi_ws281x_available = importlib.util.find_spec("rpi_ws281x") is not None
+
+if not rpi_ws281x_available:
+    LED_COLOR=0
+    print("WARNING - You are running in simulation mode - no hardware will be controlled.  Set simulate=False in config.py to run on hardware")
+
     class PixelStrip:
         def __init__(self, num, pin, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None):
             self.num = num
@@ -39,7 +39,8 @@ if config.simulate:
             print("Simulated PixelStrip show")
 
         def setPixelColor(self, n, color):
-            self.pixels[n] = color
+            if n < self.num:
+                self.pixels[n] = color
 
         def setBrightness(self, brightness):
             self.brightness = brightness
@@ -50,7 +51,9 @@ if config.simulate:
     def Color(red, green, blue):
         return (red, green, blue)
 else:
+    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
     from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
+    LED_COLOR=WS2811_STRIP_GRB
 
 
 LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
@@ -61,12 +64,13 @@ LED_INVERT = False    # True to invert the signal (when using NPN transistor lev
 LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 # empty variable declarations, to stop Python from complaining
-theaterChase = lambda x: x
-rainbowCycle = lambda x: x
-theaterChaseRainbow = lambda x: x
+Theater = lambda x: x
+Rainbow = lambda x: x
+TheaterRainbow = lambda x: x
 strip = None
 current_effect = -1   # -1 = no effect
 current_playist = -1
+current_func = None
 current_color = config.DEFAULT_COLOR
 
 
@@ -82,7 +86,7 @@ def wheel(pos):
         return Color(0, pos * 3, 255 - pos * 3)
 
 
-def rainbow(strip, wait_ms=20, iterations=1):
+def Rainbow(strip, wait_ms=20, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
     for j in range(256 * iterations):
         for i in range(config.SEGMENT_0_START, strip.numPixels()):
@@ -107,7 +111,7 @@ def colorWipe(strip, color=Color(*current_color), wait_ms=50):
             return  
 
 
-def theaterChase(strip, color=Color(*current_color), wait_ms=50, iterations=10):
+def Theater(strip, color=Color(*current_color), wait_ms=50, iterations=10):
     """Movie theater light style chaser animation."""
     for j in range(iterations):
         for q in range(3):
@@ -123,7 +127,7 @@ def theaterChase(strip, color=Color(*current_color), wait_ms=50, iterations=10):
             return
 
 
-def rainbowCycle(strip, wait_ms=20, iterations=5):
+def Rainbow(strip, wait_ms=20, iterations=5):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     for j in range(256 * iterations):
         for i in range(config.SEGMENT_0_START, strip.numPixels()):
@@ -134,8 +138,9 @@ def rainbowCycle(strip, wait_ms=20, iterations=5):
         if checkCancel():     
             return
 
-def theaterChaseRainbow(strip, wait_ms=50):
+def TheaterRainbow(strip, wait_ms=50):
     """Rainbow movie theater light style chaser animation."""
+
     for j in range(256):
         for q in range(3):
             for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
@@ -143,15 +148,20 @@ def theaterChaseRainbow(strip, wait_ms=50):
             strip.show()
             time.sleep(wait_ms / 1000.0)
             for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
-                strip.setPixelColor(i + q, 0)
+                 strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
+    
+
+#this is the complete list ... we need to send this back to the web server
+from effects_list import effects_list2
 
 effects_list = [
     {
         # Static color effect - should always be first - defines the default
         # state of the LEDs
-        "name": "Solid",
+        "ID": "0",
+        "Effect": "Solid",
         "description": "Solid color lighting effect",
         "parameters": {
             "color": "#0000FF",
@@ -159,24 +169,27 @@ effects_list = [
       }
     },
     {
-        "func": theaterChase,
-        "name": "theaterChase",
+        'ID': '13',
+        "func": Theater,
+        "Effect": "Theater",
         "description": "Movie theater light style chaser animation.",
         "parameters": {
             "wait_ms": 20,
         }
     },
     {
-        "func": rainbow,
-        "name": "rainbow",
-        "description": "A smooth rainbow effect that cycles through colors",
+        'ID': '14',
+        "func": TheaterRainbow,
+        "Effect": "Theater Rainbow",
+        "description": "A smooth Rainbow effect that cycles through colors",
         "parameters": {
             "wait_ms": 20,
         }
     },
     {
-        "func": rainbowCycle,
-        "name": "rainbowCycle",
+        'ID': '9',
+        "func": Rainbow,
+        "Effect": "Rainbow",
         "description": "Draw rainbow that uniformly distributes itself across all pixels.",
         "parameters": {
             "speed": 50,
@@ -184,11 +197,11 @@ effects_list = [
         }
     },
     {
-        "func": theaterChaseRainbow,
-        "name": "theaterChaseRainbow",
+        "func": TheaterRainbow,
+        "Effect": "Theater Rainbow",
         "description": "Rainbow movie theater light style chaser animation",
-        "parameters": {
-            "speed": 50,
+        "parameters" : {
+            "wait_ms": 50,      
             "intensity": 128
         }
     }
@@ -203,30 +216,77 @@ def checkCancel():
     return False    
 
 #effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\"]"
+effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\",\"Wipe Random\",\"Random Colors\",\"Sweep\",\"Dynamic\",\"Colorloop\",\"Rainbow\",\"Scan\",\"Scan Dual\",\"Fade\",\"Theater\",\"Theater Rainbow\",\"Running\",\"Saw\",\"Twinkle\",\"Dissolve\",\"Dissolve Rnd\",\"Sparkle\",\"Sparkle Dark\",\"Sparkle+\",\"Strobe\",\"Strobe Rainbow\",\"Strobe Mega\",\"Blink Rainbow\",\"Android\",\"Chase\",\"Chase Random\",\"Chase Rainbow\",\"Chase Flash\",\"Chase Flash Rnd\",\"Rainbow Runner\",\"Colorful\",\"Traffic Light\",\"Sweep Random\",\"Chase 2\",\"Aurora\",\"Stream\",\"Scanner\",\"Lighthouse\",\"Fireworks\",\"Rain\",\"Tetrix\",\"Fire Flicker\",\"Gradient\",\"Loading\",\"Rolling Balls\",\"Fairy\",\"Two Dots\",\"Fairytwinkle\",\"Running Dual\",\"RSVD\",\"Chase 3\",\"Tri Wipe\",\"Tri Fade\",\"Lightning\",\"ICU\",\"Multi Comet\",\"Scanner Dual\",\"Stream 2\",\"Oscillate\",\"Pride 2015\",\"Juggle\",\"Palette\",\"Fire 2012\",\"Colorwaves\",\"Bpm\",\"Fill Noise\",\"Noise 1\",\"Noise 2\",\"Noise 3\",\"Noise 4\",\"Colortwinkles\",\"Lake\",\"Meteor\",\"Meteor Smooth\",\"Railway\",\"Ripple\",\"Twinklefox\",\"Twinklecat\",\"Halloween Eyes\",\"Solid Pattern\",\"Solid Pattern Tri\",\"Spots\",\"Spots Fade\",\"Glitter\",\"Candle\",\"Fireworks Starburst\",\"Fireworks 1D\",\"Bouncing Balls\",\"Sinelon\",\"Sinelon Dual\",\"Sinelon Rainbow\",\"Popcorn\",\"Drip\",\"Plasma\",\"Percent\",\"Ripple Rainbow\",\"Heartbeat\",\"Pacifica\",\"Candle Multi\",\"Solid Glitter\",\"Sunrise\",\"Phased\",\"Twinkleup\",\"Noise Pal\",\"Sine\",\"Phased Noise\",\"Flow\",\"Chunchun\",\"Dancing Shadows\",\"Washing Machine\",\"RSVD\",\"Blends\",\"TV Simulator\",\"Dynamic Smooth\",\"Spaceships\",\"Crazy Bees\",\"Ghost Rider\",\"Blobs\",\"Scrolling Text\",\"Drift Rose\",\"Distortion Waves\",\"Soap\",\"Octopus\",\"Waving Cell\",\"Pixels\",\"Pixelwave\",\"Juggles\",\"Matripix\",\"Gravimeter\",\"Plasmoid\",\"Puddles\",\"Midnoise\",\"Noisemeter\",\"Freqwave\",\"Freqmatrix\",\"GEQ\",\"Waterfall\",\"Freqpixels\",\"RSVD\",\"Noisefire\",\"Puddlepeak\",\"Noisemove\",\"Noise2D\",\"Perlin Move\",\"Ripple Peak\",\"Firenoise\",\"Squared Swirl\",\"RSVD\",\"DNA\",\"Matrix\",\"Metaballs\",\"Freqmap\",\"Gravcenter\",\"Gravcentric\",\"Gravfreq\",\"DJ Light\",\"Funky Plank\",\"RSVD\",\"Pulser\",\"Blurz\",\"Drift\",\"Waverly\",\"Sun Radiation\",\"Colored Bursts\",\"Julia\",\"RSVD\",\"RSVD\",\"RSVD\",\"Game Of Life\",\"Tartan\",\"Polar Lights\",\"Swirl\",\"Lissajous\",\"Frizzles\",\"Plasma Ball\",\"Flow Stripe\",\"Hiphotic\",\"Sindots\",\"DNA Spiral\",\"Black Hole\",\"Wavesins\",\"Rocktaves\",\"Akemi\"]"
 
 def get_effects():
     json_effects = []
+    return json.loads(effects_data)
 
-    for i, effect in enumerate(effects_list):
-        # Make copy of effect before modifying it
-        effect = dict(effect)
-        # Add id to function
-        effect['id'] = i
-        json_effects.append(effect['name'])
+def check_effects(effect_id): 
+    effect = next((effect for effect in effects_list2 if effect['ID'] == str(effect_id)), None)
+    if effect:
+        name = effect['Effect']
+        print("Running effect", name, "with id", effect_id)
+        
+        # Find the equivalent effect in effects_list
+        
+        equivalent_effect = next((e for e in effects_list if e['Effect'] == name), None)
+        if equivalent_effect:
+            print(f"Equivalent effect found: {equivalent_effect['Effect']}")
+            # You can now run the equivalent effect function if needed
+            # equivalent_effect['func'](strip)
+            return equivalent_effect['func']
+        else:
+            print(f"No equivalent effect found for {name}")
+    else:
+        print("Effect with id", effect_id, "not found")
+        return None
 
-    return json_effects
 
-def run_effects(effect_id): 
-    effect = effects_list[effect_id] 
-    function = effect['func']
-    print("Running effect", effect['name'], "with id", effect_id, "and function", function)    
-    function(strip)
+def run_effects(effect_id):
+    effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
+    if effect:
+        function = effect['func']
+        print("Running effect", effect['Effect'], "with id", effect_id, "and function", function)
+
+        try:
+            function(strip)
+  
+        except Exception as e:
+            print("Error running effect", effect['Effect'], "with id", effect_id, "and function", function)
+            print(e)
+    else:
+        print("Effect with id", effect_id, "not found")
+
+
+
+
 
 def update_effect(effect_id):
     global current_effect, current_pl
     print("in update_effect()", effect_id)
     current_pl  =  -1
     current_effect = effect_id
+
+def update_effect2(effect_id):
+    global current_effect, current_pl, current_func
+
+    print("in update_effect()", effect_id)
+
+    current_func = check_effects(effect_id) 
+    
+    current_pl  =  -1
+    current_effect = effect_id
+
+    if current_func:
+        print("in update_effect() - found effect id ", effect_id)
+    else:
+        print("in update_effect() - did not find effect id ", effect_id)
+
+    return current_func
+
+
+
 
 def update_playlist(playlist_id):
     global current_effect, current_pl   
@@ -239,18 +299,29 @@ def init_rpi():
     global strip
 
     print("Initializing", config.LED_COUNT)
-    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, config.LED_COLOR )
+    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR )
   
     strip.begin()
 
+def init_effects():
+    for effect2 in effects_list2:
+        name = effect2['Effect']
+        equivalent_effect = None
+        for e in effects_list:
+            if e['Effect'] == name:
+                equivalent_effect = e
+                break
+        if equivalent_effect:
+            print(f"Adding ID {effect2['ID']} to effect {name}")
+            equivalent_effect['ID'] = effect2['ID']
+ 
 
 def run_rpi_app():
     global current_effect
+#
 
-    # Process arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
-    args = parser.parse_args()
+#Need to patch the index.js file instead 
+    init_effects()
 
     
     for i in range(0, config.SEGMENT_0_START):
@@ -271,8 +342,7 @@ def run_rpi_app():
 
     except Exception as e: # KeyboardInterrupt:
         breakpoint()
-        if args.clear:
-            all_off()
+        all_off()
 
     
 def update_bri(bri_arg):

@@ -96,16 +96,29 @@ StubWebSocket.CLOSED = 3;
 EOF
 )
 
+file_to_patch="path/to/your/file.js"
+
+# Define the effects to insert
+insert_effects=$(cat <<EOF
+var effects[] = [
+    ['0', "Solid"],
+    ['9', "Rainbow"],
+    ['13', "Theater"],
+    ['14', "Theater Rainbow"]
+];
+EOF
+)
+
+# Use sed to find the line and insert the new lines after it
+#sed -i "/var effects = eJson;/a $insert_lines" "$file_to_patch"
 #last is ugly hack, my brain is too tired to deal with sed right now ..
 #sed 's/if (!s) return false/return false/' >> static/js/index.js
 echo "$insert_stub"  > static/js/index.js
 cat WLED/wled00/data/index.js |
 sed "s/WebSocket/StubWebSocket/g" |
+
 sed "s/var useWs = (ws && ws.readyState === StubWebSocket.OPEN);/var useWs = false/" >> static/js/index.js
 cat WLED/wled00/data/settings.htm |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" >> templates/settings.htm
+perl  -i -pe "s/var effects = eJson;/$insert_effects/" static/js/index.js
 
-
-
-
- 

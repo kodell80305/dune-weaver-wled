@@ -3,4 +3,10 @@
 rm -rf templates
 rm -rf static
 ./build_web.sh
-sudo python startup.py
+
+if [[ "$(uname -s)" == "Linux" ]]; then
+  sudo python startup.py
+else
+  python startup.py
+fi
+

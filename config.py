@@ -15,18 +15,12 @@
 #SK6812_STRIP = _rpi_ws281x.SK6812_STRIP
 #SK6812W_STRIP = _rpi_ws281x.SK6812W_STRIP
 
-#Run in simulation mode - for testing only
-simulate = True
 #You'll need to configure the number of pixels and the type of strip you have.   Also if you want to have the first SEGMENT_0_START pixels be used for undertable
 #lighting, set SEGMENT_0_START.  Otherwise make it 0.  These pixels will always be white, but will respond to brightness/power on or off
 LED_COUNT = 87
 SEGMENT_0_START = 11
 
-if simulate:
-    LED_COLOR=0
-else:
-    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
-    LED_COLOR=WS2811_STRIP_GRB
+
   
 from queue import Queue
 myQueue = Queue()
