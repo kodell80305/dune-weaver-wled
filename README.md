@@ -23,10 +23,11 @@ Features implemented are going to be those that are used on the Dune Weaver proj
 ## What it does
 Isn't too hard to explain, since it should behave exactly like WLED in this environment (I'm not planning on re-inventing WLED ... this only incorporates needed/useful features for the Dune Weaver project.   It is (in my opinion) usable at this point, but it's not feature complete.  A short list of missing features includes:
 
-*Configuration from the web interface - this is high on my list.  As of right now, strip type, number of leds, segment definitions, default color, etc. are all hard coded.  Power, brightness, color picking and a limited number of effects work.
-*Timer not implemented.
-*Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
-*Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
+* Configuration from the web interface - this is high on my list.  As of right now, strip type, number of leds, segment definitions, default color, etc. are all hard coded.  Power, brightness, color picking and a limited number of effects work.
+* Timer not implemented.
+* Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
+* Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
+* Some needed effects, playlists are not yet implemented.
 
 Everything that hasn't been hidden is there  because I'm planning on implementing it.
 
