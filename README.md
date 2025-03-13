@@ -8,7 +8,7 @@ The web pages are all directly from the WLED project.  I've included WLED as a s
 
 ```sudo python startService.py```.  
 
-This is do the following (supposed to - needs more fresh install testing):
+This is supposed do the following (supposed to - needs more fresh install testing):
 * If needed, populate the WLED submodule
 * If needed, install packages from requirements.txt.  Note that the "--break-system-packages" flag is used.
 * If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (eliminate websocket, hide unsupported features, work in flask, etc.) 
