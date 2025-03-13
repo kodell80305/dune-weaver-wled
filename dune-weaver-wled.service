@@ -1,0 +1,17 @@
+
+[Unit]
+Description=Dune Weaver WLED Application
+After=network.target
+
+[Service]
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/bin/python3 /home/kodell/test1/dune-weaver-wled-server/app.py
+WorkingDirectory=/home/kodell/test1/dune-weaver-wled-server
+Restart=always
+RestartSec=10
+StartLimitInterval=0
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
