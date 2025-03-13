@@ -101,9 +101,34 @@ def stop_service():
     os.system('systemctl stop dune-weaver-wled.service')
     print("Systemd service for Dune Weaver WLED Application stopped.")
 
+def uninstall_service():
+    # Stop the service if it is running
+    os.system('systemctl stop dune-weaver-wled.service')
+    print("Systemd service for Dune Weaver WLED Application stopped.")
+
+    # Disable the service
+    os.system('systemctl disable dune-weaver-wled.service')
+    print("Systemd service for Dune Weaver WLED Application disabled.")
+
+    # Remove the systemd service file
+    if os.path.exists(service_file_path):
+        os.remove(service_file_path)
+        print("Systemd service file removed.")
+
+    # Reload systemd to apply changes
+    os.system('systemctl daemon-reload')
+    print("Systemd daemon reloaded.")
+
+    # Remove the local service file if it exists
+    if os.path.exists(local_service_file):
+        os.remove(local_service_file)
+        print("Local service file removed.")
+
+    print("Uninstallation of Dune Weaver WLED Application completed.")
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python startService.py <start|stop>")
+        print("Usage: python startService.py <start|stop|uninstall>")
         sys.exit(1)
 
     action = sys.argv[1].lower()
@@ -112,6 +137,8 @@ if __name__ == "__main__":
         start_service()
     elif action == "stop":
         stop_service()
+    elif action == "uninstall":
+        uninstall_service()
     else:
-        print("Invalid argument. Use 'start' or 'stop'.")
+        print("Invalid argument. Use 'start', 'stop', or 'uninstall'.")
         sys.exit(1)
