@@ -5,11 +5,11 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 ## Installation
 
 The web pages are all directly from the WLED project.  I've included this as a submodule  After cloning the repo, you should be able to run ```sudo python startService.py```.  This is (supposed to - needs more fresh install testing):
-*If needed, populate the WLED submodule 
-*If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (elminate websocket, hide unsupported features, work in flask, etc.) 
-*If needed create or modify the service file
-*Start the service
-The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver interface to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
+* If needed, populate the WLED submodule 
+* If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (elminate websocket, hide unsupported features, work in flask, etc.) 
+* If needed create or modify the service file
+* Start the service
+The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver setting menu to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
 
 I may need to  modify this script to blacklist the snd_bcm2835 module and disable audio, but so far it hasn't seemed necessary.
 
