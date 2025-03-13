@@ -11,11 +11,11 @@ with open(file_path, 'r') as file:
         exit(0)
 
 # Define the code to be inserted
-insert_code = '''
+insert_code = """
 def get_comports(include_links=False):
     import glob
     from serial.tools.list_ports_linux import SysFS
-    from serial.tools.list_ports_common import list_ports_common, list_links
+    from serial.tools import list_ports_common, list_links
 
     devices = glob.glob('/dev/ttyS*')           # built-in serial ports
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
@@ -27,7 +27,9 @@ def get_comports(include_links=False):
     if include_links:
         devices.extend(list_ports_common.list_links(devices))
     return [info
-'''
+            for info in [SysFS(d) for d in devices]]
+    """
+
 
 # Create a temporary file to store the insert code
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -52,7 +54,7 @@ with open(file_path, 'w') as file:
     for line in lines:
         if "ports = serial.tools.list_ports.comports()" in line:
             file.write("#" + line)
-            file.write("ports = get_comports()\n")
+            file.write("    ports = get_comports()\n")
         else:
             file.write(line)
 

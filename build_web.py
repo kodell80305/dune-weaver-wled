@@ -1,14 +1,12 @@
 import os
 import shutil
 import subprocess
+import time
 from datetime import datetime
 
 def run_command(command):
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Error running command: {command}")
-        print(result.stderr)
-    return result.stdout
+    result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return result.stdout.decode('utf-8')
 
 def check_submodule():
     if not os.path.exists("WLED"):
@@ -30,12 +28,17 @@ def backup_directories():
 
 def copy_files():
     print("Copying files index.scss, iro.js, rangetouch.js, common.js, 404.htm")
-    shutil.copy("WLED/wled00/data/index.css", "static/styles")
-    shutil.copy("WLED/wled00/data/iro.js", "static/js")
-    shutil.copy("WLED/wled00/data/rangetouch.js", "static/js")
-    shutil.copy("WLED/wled00/data/common.js", "static/js")
-    shutil.copy("WLED/wled00/data/404.htm", "templates")
-    shutil.copy("WLED/wled00/data/settings_leds.htm", "templates")
+    files_to_copy = [
+        ("WLED/wled00/data/index.css", "static/styles"),
+        ("WLED/wled00/data/iro.js", "static/js"),
+        ("WLED/wled00/data/rangetouch.js", "static/js"),
+        ("WLED/wled00/data/common.js", "static/js"),
+        ("WLED/wled00/data/404.htm", "templates"),
+        ("WLED/wled00/data/settings_leds.htm", "templates"),
+        ("WLED/wled00/data/settings.htm", "templates")
+    ]
+    for src, dst in files_to_copy:
+        run_command(f"cp {src} {dst}")
 
 def patch_index_html():
     print("Patching index.htm")
@@ -47,7 +50,7 @@ def patch_index_html():
             line = line.replace("index.js", "{{ url_for('static', filename='js/index.js') }}")
             line = line.replace("toggleLiveview()\"", "toggleLiveview()\" hidden")
             line = line.replace("toggleSync()\"", "toggleSync()\" hidden")
- #           line = line.replace("settings');", "settings');\" hidden")
+            line = line.replace("settings');", "settings');\" hidden")
             line = line.replace("iro.js", "{{ url_for('static', filename='js/iro.js') }}")
             line = line.replace(">Reboot WLED", " hidden>Reboot WLED")
             line = line.replace(">Update WLED", " hidden>Update WLED")
@@ -58,74 +61,59 @@ def patch_index_html():
 def patch_settings_html():
     print("Patching settings.htm")
     with open("WLED/wled00/data/settings.htm", "r") as infile, open("templates/settings.htm", "w") as outfile:
-        for line in infile:
-            line = line.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
-#            line = line.replace(">Security", " hidden>Security")
-            outfile.write(line)
+        content = infile.read()
+        content = content.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
+        outfile.write(content)
 
 def create_stub_websocket():
     print("Create StubWebSocket class")
-    insert_stub = """
-class StubWebSocket {
-  constructor(url) {
-    this.url = url;
-    this.readyState = StubWebSocket.CONNECTING;
-    this.sentMessages = [];
-    
-    // Simulate connection opening after a short delay
-    setTimeout(() => {
-      this.readyState = StubWebSocket.OPEN;
-      if (this.onopen) {
-        this.onopen();
-      }
-    }, 10); 
-  }
+    stub_websocket = """
+class StubWebSocket:
+    def __init__(self, url):
+        self.url = url
+        self.readyState = StubWebSocket.CONNECTING
+        self.sentMessages = []
 
-  send(data) {
-    this.sentMessages.push(data);
-    if (this.onmessage) {
-      this.onmessage({ data: data });
-    }
-  }
+        # Simulate connection opening after a short delay
+        time.sleep(0.01)
+        self.readyState = StubWebSocket.OPEN
+        if self.onopen:
+            self.onopen()
 
-  close() {
-    this.readyState = StubWebSocket.CLOSED;
-    if (this.onclose) {
-      this.onclose();
-    }
-  }
+    def send(self, data):
+        self.sentMessages.append(data)
+        if self.onmessage:
+            self.onmessage({'data': data})
 
-  onopen() {
-    console.log('Connected to WebSocket server');
-    this.send('Hello, server!');
-  }
+    def close(self):
+        self.readyState = StubWebSocket.CLOSED
+        if self.onclose:
+            self.onclose()
 
-  onmessage(event) {
-    console.log('Received message:', event.data);
-  } 
+    def onopen(self):
+        print('Connected to WebSocket server')
+        self.send('Hello, server!')
 
-  onwerror(error) {
-    console.error('WebSocket error:', error);
-  }
+    def onmessage(self, event):
+        print('Received message:', event['data'])
 
-  onclose () {
-    console.log('Disconnected from WebSocket server');
-  }
-  
-  simulateMessage(data) {
-      if (this.onmessage) {
-          this.onmessage({ data: data });
-      }
-  }
-}
+    def onwerror(self, error):
+        print('WebSocket error:', error)
 
-StubWebSocket.CONNECTING = 0;
-StubWebSocket.OPEN = 1;
-StubWebSocket.CLOSING = 2;
-StubWebSocket.CLOSED = 3;
+    def onclose(self):
+        print('Disconnected from WebSocket server')
+
+    def simulateMessage(self, data):
+        if self.onmessage:
+            self.onmessage({'data': data})
+
+StubWebSocket.CONNECTING = 0
+StubWebSocket.OPEN = 1
+StubWebSocket.CLOSING = 2
+StubWebSocket.CLOSED = 3
 """
     with open("static/js/index.js", "w") as outfile:
-        outfile.write(insert_stub)
+        outfile.write(stub_websocket)
 
 def patch_index_js():
     print("Patching index.js")
@@ -155,12 +143,11 @@ def patch_index_js():
     with open("static/js/index.js", "w") as outfile:
         for line in lines:
             if(hideTable):
-#                line = line.replace("function showErrorToast()", "function showErrorToast() {\n    return;")
                 line = line.replace('<i class="icons delete-icon">', '<i class="icons delete-icon" style="display:none;">')
                 line = line.replace("Signal Strength", "//Signal Strength")
                 line = line.replace("Uptime", "//Uptime")
                 line = line.replace("Time", "//Time")
-                ine = line.replace("Free heap", "//Free heap")
+                line = line.replace("Free heap", "//Free heap")
                 line = line.replace("Free PSRAM", "//Free PSRAM")
                 line = line.replace("Estimated current", "//Estimated current")
                 line = line.replace("Average FPS", "//Average FPS")
@@ -168,8 +155,6 @@ def patch_index_js():
                 line = line.replace("CPU clock", "//CPU clock")
                 line = line.replace("Flash size", "//Flash size")
                 line = line.replace("Filesystem", "//Filesystem")
-
-#                if("Fileystem" not in line and "Flash size"  not in line):
                 outfile.write(line)
 
 def main():

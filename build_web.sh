@@ -1,9 +1,11 @@
 #!/bin/bash
 
-#Need to update the WLED submodule first
-#cd ..
-#git submodule update --init 
-#git submodule update
+# Initialize and update the WLED submodule
+if [ ! -d "WLED" ]; then
+    echo "Submodule WLED not found. Initializing submodule..."
+    git submodule update --init
+fi
+git submodule update
 
 echo "Building web interface"
 mkdir -p templates
@@ -15,7 +17,9 @@ cp WLED/wled00/data/index.css static/styles
 cp WLED/wled00/data/iro.js static/js
 cp WLED/wled00/data/rangetouch.js static/js
 cp WLED/wled00/data/common.js static/js
-cp WLED/wled00/data/404.htm templates 
+cp WLED/wled00/data/404.htm templates
+cp WLED/wled00/data/settings_leds.htm templates
+cp WLED/wled00/data/settings.htm templates
 
 #<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 #sed "s/toggleLiveView()\"/toggleLiveView()\" hidden/g" |
@@ -142,7 +146,7 @@ perl  -i -pe "s/var effects = eJson;/$insert_effects/" static/js/index.js
 #perl -i -pe 's|.*Estimated Current.*|//&|' static/js/index.js
 #perl -i -pe 's|.*Average FPS.*|//&|' static/js/index.js
 #perl -i -pe 's|.*MAC address.*|//&|' static/js/index.js
-#perl -i -pe 's|.*CPU Clock.*|//&|' static/js/index.js
+perl -i -pe 's|.*CPU Clock.*|//&|' static/js/index.js
 #perl -i -pe 's|.*Flash Size.*|//&|' static/js/index.js
 #perl -i -pe 's|.*File System.*|//&|' static/js/index.js
 
