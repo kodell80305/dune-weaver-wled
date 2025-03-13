@@ -1,4 +1,4 @@
-# dune-weaver-wled-server
+# dune-weaver-wled
 
 This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  It's using the WLED code on a standalone ESP32 to control the leds for the sand table.   The project uses a raspberry pi to control a CNC board (mks dlc32 running Fluidnc).   An additional esp32 running WLED is used to control the LED strip surrounding the table.    Since the Raspberry Po zero 2w is an essential port of the system, I've implemented a WLED compatible server to replace the additional ESP32 device. 
 
