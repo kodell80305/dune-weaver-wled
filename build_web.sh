@@ -1,8 +1,9 @@
+#!/bin/bash
+
 #Need to update the WLED submodule first
 #cd ..
 #git submodule update --init 
 #git submodule update
-
 
 echo "Building web interface"
 mkdir -p templates
@@ -28,6 +29,14 @@ sed "s/toggleLiveview()\"/toggleLiveview()\" hidden/g" |
 sed "s/toggleSync()\"/toggleSync()\" hidden/g" |
 sed "s/settings');./settings');\" hidden/g" | 
 sed "s/iro\.js/{{ url_for('static', filename='js\/iro.js') }}/g" > templates/index.htm
+perl  -i -pe 's/>Reboot WLED/ hidden>Reboot WLED/' templates/index.htm
+perl  -i -pe 's/>Update WLED/ hidden>Update WLED/' templates/index.htm
+perl  -i -pe 's/>Instance/ hidden>Instance/' templates/index.htm
+perl  -i -pe 's/>Reset segments/ hidden>Reset segments/' templates/index.htm
+#my SegClass=q(<div class="seg btn btn-s${off?' off':''}" style="padding:0;margin-bottom:12px;">);
+#my SegClassHidden=q(<div class="seg btn btn-s${off?' off':''}" style="display:none;">);
+#perl -i -pe 's/$SegClass/$SegClassHidden/' templates/index.htm
+
 #index.js wants websocket ... let's create a fake web socket class
 
 echo "Create StubWebSocket class"
@@ -117,4 +126,25 @@ sed "s/var useWs = (ws && ws.readyState === StubWebSocket.OPEN);/var useWs = fal
 cat WLED/wled00/data/settings.htm |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" >> templates/settings.htm
 perl  -i -pe "s/var effects = eJson;/$insert_effects/" static/js/index.js
+
+# Insert a return after the text "function showErrorToast() {" in index.js
+#perl -i -pe 's|(function showErrorToast\(\)\s*{)|$1\n    return;|' static/js/index.js
+
+# Hide the delete icon for the segments in index.js
+#perl -i -pe 's|(<i class="icons delete-icon">)|$1\n    style="display:none;"|' static/js/index.js
+
+# Comment out lines containing specific text in index.js
+#perl -i -pe 's|.*Signal Strength.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Uptime.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Time.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Free Heep.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Free PSRPM.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Estimated Current.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Average FPS.*|//&|' static/js/index.js
+#perl -i -pe 's|.*MAC address.*|//&|' static/js/index.js
+#perl -i -pe 's|.*CPU Clock.*|//&|' static/js/index.js
+#perl -i -pe 's|.*Flash Size.*|//&|' static/js/index.js
+#perl -i -pe 's|.*File System.*|//&|' static/js/index.js
+
+echo "index.js patched successfully."
 

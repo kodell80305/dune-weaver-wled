@@ -76,10 +76,15 @@ def index():
 def settings():
     return render_template('settings.htm')
 
+    
+@app.route('/settings/leds')
+def settings_leds():
+    return render_template('settings_leds.htm')
+
 @app.route("/settings/s.js")
 def settings_s():
     return render_template('settings.htm')
-
+ 
 
 def set_color(rval, gval, bval):        #Set all leds to same color
     global state
@@ -180,7 +185,7 @@ def parse_state():
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
         
-        # Process the JSON dat here
+        # Process the JSON data here
         response = {
             "message": "JSON received successfully",
             "received_data": data
