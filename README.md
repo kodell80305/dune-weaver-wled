@@ -6,7 +6,7 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 
 The web pages are all directly from the WLED project.  I've included this as a submodule  After cloning the repo, you should be able to run ```sudo python startService.py```.  This is (supposed to - needs more fresh install testing):
 * If needed, populate the WLED submodule 
-* If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (elminate websocket, hide unsupported features, work in flask, etc.) 
+* If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (eliminate websocket, hide unsupported features, work in flask, etc.) 
 * If needed create or modify the service file
 * Start the service
 The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver setting menu to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
@@ -14,18 +14,18 @@ The command can also be used to stop the service (or the normal systemctl comman
 I may need to  modify this script to blacklist the snd_bcm2835 module and disable audio, but so far it hasn't seemed necessary.
 
 ## Tests run so far
-This has only been tested on the Pi Zero 2w and the Pi 4 using the latest 64 bit Bookworm OS (Version 12), freshly installed and updated.   The startService.py program (may or may not) won't work correctly on other versions/operating systems, but everything it does can be done manually.   I'm doing testing for real time, latency, memory usage.  So far everything seems very good.  Very little real time is used.  I've only tested with the 12V led strips ws2815 and the ws2811.   With 80 leds,  the The Pi Zero 2w uses about 8% of it's memory (I used the additional LEDs as a seperate segment for under table lighting).   This is enough for the ws2815 on the Ombonad table or the ws2811 on with the Dune Weaver Pro version.   I'll do some additional testing with 180 leds for the ws2815 on the Dune Weaver Pro.
+This has only been tested on the Pi Zero 2w and the Pi 4 using the latest 64 bit Bookworm OS (Version 12), freshly installed and updated.   The startService.py program (may or may not) won't work correctly on other versions/operating systems, but everything it does can be done manually.   I'm doing testing for real time, latency, memory usage.  So far everything seems very good.  Very little real time is used.  I've only tested with the 12V led strips ws2815 and the ws2811.   With 80 leds,  the The Pi Zero 2w uses about 8% of it's memory (I used the additional LEDs as a separate segment for under table lighting).   This is enough for the ws2815 on the Ombonad table or the ws2811 on with the Dune Weaver Pro version.   I'll do some additional testing with 180 leds for the ws2815 on the Dune Weaver Pro.
 
 ## Hardware configuration
 I've tested only with the Raspberry Pi 4 and the Zero 2w along with the mks dlc32 boad supplying power for both the Pi and the LED strip.   Because the data signal from the Pis is marginal without level shifters it seems like good ground connections (and a good data connection).  I run a ground wire from the mks dlc32 and one from the Pi and connect them together at the LED jst header.   I'm planning on doing some additional testing with the various methods of incorporating level shifters into the data line.
-Features implemented are going to be those that are used on the Dune Weaver project, but the intentions is to be as compatible as possible with the WLED functons.
+Features implemented are going to be those that are used on the Dune Weaver project, but the intentions is to be as compatible as possible with the WLED functions.
 
-##What it does
-Isn't too hard to explain, since it should behave exactly like WLED in this environment (I'm not planning on re-inventing WLED ... this only incorporates needed/useful features for the Dune Weaver project.   It is (in my opinion) usable at this point, but its not feature complete.  A short list of missing features includes:
+## What it does
+Isn't too hard to explain, since it should behave exactly like WLED in this environment (I'm not planning on re-inventing WLED ... this only incorporates needed/useful features for the Dune Weaver project.   It is (in my opinion) usable at this point, but it's not feature complete.  A short list of missing features includes:
 
-*Configuration from the web interface - this is high on my list.  As of right now, number of leds, segment definations, default color, etc. are all hard coded.  Power, brightness, color picking and a limited number of effects work.
+*Configuration from the web interface - this is high on my list.  As of right now, strip type, number of leds, segment definitions, default color, etc. are all hard coded.  Power, brightness, color picking and a limited number of effects work.
 *Timer not implemented.
-*Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for undertable lighting.  
+*Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
 *Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
 
 Everything that hasn't been hidden is there for the most part because I'm planning on implementing it.
