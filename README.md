@@ -2,7 +2,7 @@
 
 This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  It's using the WLED code on a standalone ESP32 to control the leds for the sand table.   The project uses a raspberry pi to control a CNC board (mks dlc32 running Fluidnc).   An additional esp32 running WLED is used to control the LED strip surrounding the table.    Since the Raspberry Po zero 2w is an essential port of the system, I've implemented a WLED compatible server to replace the additional ESP32 device. 
 
-#Installation
+##Installation
 
 The web pages are all directly from the WLED project.  I've included this as a submodule  After cloning the repo, you should be able to run ```sudo python startService.py```.  This is (supposed to - needs more fresh install testing):
 *If needed, populate the WLED submodule 
@@ -11,7 +11,11 @@ The web pages are all directly from the WLED project.  I've included this as a s
 *Start the service
 The command can also be used to stop the service (or the normal systemctl commands can be used).
 
+##Tests run so far
+This has only been tested on the Pi Zero 2w and the Pi 4 using the latest 64 bit Bookworm OS (Version 12).   The startService.py program (may or may not) won't work correctly on other versions/operating systems, but everything it does can be done manually.   I'm doing testing for real time, latency, memory usage.  So far everything seems very good.  Very little real time is used.  I've only tested with the 12V led strips ws2815 and the ws2811.   With 80 leds,  the The Pi Zero 2w uses about 8% of it's memory (I used the additional LEDs as a seperate segment for under table lighting).   This is enough for the ws2815 on the Ombonad table or the ws2811 on with the Dune Weaver Pro version.   I'll do some additional testing with 180 leds for the ws2815 on the Dune Weaver Pro.
 
+##Hardware configuration
+I've tested only with the Raspberry Pi 4 and the Zero 2w along with the mks dlc32 boad supplying power for both the Pi and the LED strip.   Because the data signal from the Pis is marginal without level shifters it seems like good ground connections (and a good data connection).  I run a ground wire from the mks dlc32 and one from the Pi and connect them together at the LED jst header.   I'm planning on doing some additional testing with the various methods of incorporating level shifters into the data line.
 Features implemented are going to be those that are used on the Dune Weaver project, but the intentions is to be as compatible as possible with the WLED functons.
 
 Since the project has integrated the WLED api & html in the interface, I wanted to provide the same function from a flask server running on the raspberry pi.   Currently (as of 3/8/2025), I've copied the web interface from WLED and wrote a script to build a functional web page from their content (modify to make flask happy, insert stub code for WebSocket & hide buttons that are non-functional.   What does work is the control of brightness, power, color chosing from the web api.   I've also implemented a set of JSON commands from the WLED json API, but I don't know if they will be compatible with what the project will do in the future.
