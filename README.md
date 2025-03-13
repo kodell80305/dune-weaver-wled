@@ -1,6 +1,10 @@
 # dune-weaver-wled
 
+
 This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  The Dune Weaver project uses standalone WLED devices to control the lighting for the sand table.   The project uses a Raspberry Pi to control a commercial CNC board (mks dlc32 running Fluidnc).   Since the Raspberry Pi Zero 2w is an essential port of the system, I've implemented WLED compatible software to replace the additional ESP32 device.  The commercial WLED devices are probably far less hassle and provide some needed level shifting/wiring simplification as well as many more features, so using these might be your best choice.   I was interested in having one less device that needs to be on my network and simplifing the overall hardware design, so I've implemented this software.
+
+![Screenshot 2025-03-13 164145](https://github.com/user-attachments/assets/1a2445e7-8293-41fc-a84b-e79efbb004a6)
+
 
 ## Installation
 
@@ -36,11 +40,14 @@ Isn't too hard to explain, since it should behave exactly like WLED in this envi
 
 Everything that hasn't been hidden is there  because I'm planning on implementing it.
 
-![image](https://github.com/user-attachments/assets/4e5b012e-39f0-4214-ad64-e3564760a754)
+![Screenshot 2025-03-13 153459](https://github.com/user-attachments/assets/d07e8e04-9c14-45f4-9f9e-44ea58be0062)
+
 
 Effects currently implemented - it's relatively simple to add more, but I won't support the entire WLED list.
 
-![image](https://github.com/user-attachments/assets/1d8cc4c6-046f-4a80-a161-51e0ee746cd5)
+![Screenshot 2025-03-13 153736](https://github.com/user-attachments/assets/a71a28f3-fded-46dc-bcdf-b3394b0f462a)
+
+
 
 ## Software
 
