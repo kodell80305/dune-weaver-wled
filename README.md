@@ -5,7 +5,8 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 ## Installation
 
 The web pages are all directly from the WLED project.  I've included this as a submodule  After cloning the repo, you should be able to run ```sudo python startService.py```.  This is (supposed to - needs more fresh install testing):
-* If needed, populate the WLED submodule 
+* If needed, populate the WLED submodule
+* If needed, install packages from requirements.txt.  Note that the "--break-system-packages" flag is used.
 * If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (eliminate websocket, hide unsupported features, work in flask, etc.) 
 * If needed create or modify the service file
 * Start the service
@@ -41,8 +42,17 @@ Effects currently implemented - it's relatively simple to add more, but I won't 
 
 This is implemented as a flask web server thread and a backend thread that runs the rpi_ws281x software.  The rpi_ws281x needs to run as root, while the flask web server doesn't/shouldn't (although it currently does ...).   Even at root the flask server has permission issues with reading/writing to /dev/mem (required by rpi_281x).  I think I've overcome these with this architecture, but this is still an area of concern as I don't fully understand some of the problems I've seen.  If you have problems it's most likely from either the wiring or some arcane permission problem that occurs on your system but not mine.  Please let me know so I can work through them.
 
+## Docker, virtual environment
 
-
-
-
-
+I haven't really investigage running in these conditions.   Docker can be somewhat strange when it comes with interfacing with hardware and supporting this is probably never going to be a priority for me.  requirements.txt can probably be trimmed down considerable ... it contains:
+```
+lask==2.2.2
+numpy==1.24.2
+openpyxl==3.1.5
+paho_mqtt==2.1.0
+pandas==2.2.3
+platformio==6.1.18
+plotly==6.0.0
+Requests==2.32.3
+rpi_ws281x==5.0.0```
+at the moment I'm a little confused about where some of these dependancies came from.  I'll need to start with a clean environment and regenerate this file.
