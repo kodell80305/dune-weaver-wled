@@ -32,10 +32,13 @@ Everything that hasn't been hidden is there for the most part because I'm planni
 
 ![image](https://github.com/user-attachments/assets/4e5b012e-39f0-4214-ad64-e3564760a754)
 
-Effects currently supported - it's relatively simple to add more, but I won't support the entire WLED list.
+Effects currently implemented - it's relatively simple to add more, but I won't support the entire WLED list.
 
 ![image](https://github.com/user-attachments/assets/1d8cc4c6-046f-4a80-a161-51e0ee746cd5)
 
+##Software
+
+This is implemented as a flask web server thread and a backend thread that runs the rpi_ws281x software.  The rpi_ws281x needs to run as root, while the flask web server doesn't/shouldn't (although it currently does ...).   Even at root the flask server has permissions with reading/writing to /dev/mem (required by rpi_281x).  I think I've overcome these with this architecture, but this is still an area of concern as I don't fully understand some of the problems I've seen.  If you have problems it's most likely from either the wiring or some arcane permission problem that occurs on your system but not mine.  Please let me know so I can work through them.
 
 
 
