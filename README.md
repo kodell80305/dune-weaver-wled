@@ -58,7 +58,8 @@ pandas==2.2.3
 platformio==6.1.18
 plotly==6.0.0
 Requests==2.32.3
-rpi_ws281x==5.0.0```
+rpi_ws281x==5.0.0
+```
 at the moment I'm a little confused about where some of these dependancies came from.  I'll need to start with a clean environment and regenerate this file.
 
 ## Uninstall
@@ -66,7 +67,8 @@ at the moment I'm a little confused about where some of these dependancies came 
 The startSerice.py program will also uninstall the service.
 ```
 Usage: python startService.py <start|stop|uninstall>
-``` 
+```
+
 This one is minimally tested.   Any python packages installed will remain, so it doesn't completely restore your system to it's original state.  If you're using the Pi Zero 2w to store your bitcoin or other really important information you might want to rethink some of your life choices ...
 
 
