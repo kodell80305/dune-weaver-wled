@@ -135,7 +135,7 @@ def patch_index_js():
             line = line.replace("var useWs = (ws && ws.readyState === StubWebSocket.OPEN);", "var useWs = false")
             outfile.write(line)
 
-    with open("new_effects.py", "r") as effects_file:
+    with open("new_effects.js", "r") as effects_file:
         new_effects = effects_file.read()
 
     with open("static/js/index.js", "r") as infile:
