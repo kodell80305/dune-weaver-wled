@@ -10,16 +10,19 @@ service_file_path = '/etc/systemd/system/dune-weaver-wled.service'
 working_directory = '/home/kodell/test1/dune-weaver-wled-server'
 local_service_file = 'dune-weaver-wled.service'
 
+# Get the current working directory
+current_working_directory = os.getcwd()
+
 # Content of the systemd service file
-service_file_content = """
+service_file_content = f"""
 [Unit]
 Description=Dune Weaver WLED Application
 After=network.target
 
 [Service]
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/usr/bin/python3 /home/kodell/test1/dune-weaver-wled-server/app.py
-WorkingDirectory=/home/kodell/test1/dune-weaver-wled-server
+ExecStart=/usr/bin/python3 {current_working_directory}/app.py
+WorkingDirectory={current_working_directory}
 Restart=always
 RestartSec=10
 StartLimitInterval=0
