@@ -1,12 +1,23 @@
 # dune-weaver-wled-server
 
-This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  It's using the WLED code on a standalone ESP32 to control the leds for the sand table.   The project uses a raspberry pi to control a CNC board (mks dlc32 running Fluidnc).   An additional esp32 (or similar) is need to control the LED strip surrounding the table.    Since the Raspberry PI zero 2w is an essential port of the system, I've implemented a WLED compatible server to replace the additional ESP32 device. 
+This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  It's using the WLED code on a standalone ESP32 to control the leds for the sand table.   The project uses a raspberry pi to control a CNC board (mks dlc32 running Fluidnc).   An additional esp32 running WLED is used to control the LED strip surrounding the table.    Since the Raspberry Po zero 2w is an essential port of the system, I've implemented a WLED compatible server to replace the additional ESP32 device. 
+
+#Installation
+
+The web pages are all directly from the WLED project.  I've included this as a submodule  After cloning the repo, you should be able to run ```sudo python startService.py```.  This is (supposed to - needs more fresh install testing):
+*If needed, populate the WLED submodule 
+*If needed, ynamically build the templates and static directories used by the flask web server from the WLED sources (elminate websocket, hide unsupported features, work in flask, etc.) 
+*If needed create or modify the service file
+*Start the service
+The command can also be used to stop the service (or the normal systemctl commands can be used).
+
 
 Features implemented are going to be those that are used on the Dune Weaver project, but the intentions is to be as compatible as possible with the WLED functons.
 
 Since the project has integrated the WLED api & html in the interface, I wanted to provide the same function from a flask server running on the raspberry pi.   Currently (as of 3/8/2025), I've copied the web interface from WLED and wrote a script to build a functional web page from their content (modify to make flask happy, insert stub code for WebSocket & hide buttons that are non-functional.   What does work is the control of brightness, power, color chosing from the web api.   I've also implemented a set of JSON commands from the WLED json API, but I don't know if they will be compatible with what the project will do in the future.
 
 
+![image](https://github.com/user-attachments/assets/e7e116eb-890b-4bba-abfd-04471f5961ea)
 
 As of 3/6/2025, it looks like this is the base interface ... web UI + mostly JSON commands.    Initial web UI is in ... stolen from WLED, so there are lots of things that aren't working & I've mostly tested in simulation.
 
