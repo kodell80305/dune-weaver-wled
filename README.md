@@ -4,7 +4,7 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 
 ## Installation
 
-The web pages are all directly from the WLED project.  I've included WLED as a submodule. Note that I have not tested this using a virtual environment.   After cloning the repo, you should be able to run 
+The web pages are all directly from the WLED project.  I've included WLED as a submodule. Note that I have not tested this software using a virtual environment or using docker.  After cloning the repo, you should be able to run 
 
 ```sudo python startService.py```.  
 
