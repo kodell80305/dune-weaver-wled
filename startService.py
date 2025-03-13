@@ -61,6 +61,16 @@ def check_index_file():
             print(f"Error: {index_file_path} still not found after running build_web.py.")
             sys.exit(1)
 
+def install_requirements():
+    requirements_file = os.path.join(working_directory, 'requirements.txt')
+    if os.path.exists(requirements_file):
+        print("Installing packages from requirements.txt...")
+        if os.system(f'python3 -m pip install --break-system-packages -r {requirements_file}') != 0:
+            print("Error: Failed to install required packages.")
+            sys.exit(1)
+    else:
+        print("requirements.txt not found. Skipping package installation.")
+
 def create_service():
     # Write the systemd service file locally
     with open(local_service_file, 'w') as service_file:
@@ -81,6 +91,7 @@ def create_service():
     print("Systemd service for Dune Weaver WLED Application has been set up successfully.")
 
 def start_service():
+    install_requirements()
     check_index_file()
     create_service()
     os.system('systemctl start dune-weaver-wled.service')
