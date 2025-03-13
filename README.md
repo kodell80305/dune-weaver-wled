@@ -28,7 +28,7 @@ Isn't too hard to explain, since it should behave exactly like WLED in this envi
 *Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
 *Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
 
-Everything that hasn't been hidden is there for the most part because I'm planning on implementing it.
+Everything that hasn't been hidden is there  because I'm planning on implementing it.
 
 ![image](https://github.com/user-attachments/assets/4e5b012e-39f0-4214-ad64-e3564760a754)
 
