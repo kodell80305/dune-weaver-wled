@@ -1,85 +1,62 @@
 import os
 import tempfile
 
+#git describe --tags --abbrev=0 origin/main  myversion'
+#git checkout --force v2.03       force specific tag
+#git fetch tags --force
+#don't trust this code ... need to retest
+
+#code to insert after available_ports line 
+#    if(not available_ports):
+#        import glob
+#        available_ports = glob.glob('/dev/ttyS*') 
+#        logger.info(f"available_ports={available_ports}")
+
+
 file_path = os.path.expanduser('~/dune-weaver/modules/connection/connection_manager.py')
 docker_compose_path = os.path.expanduser('~/dune-weaver/docker-compose.yml')
 
+
+portStr = "ports = serial.tools.list_ports.comports()"
+newPort =    "ports = glob.glob('dev/ttyS')    #serial.tools.list_ports.comports()\n"
+
 # Check if the file has already been modified
 with open(file_path, 'r') as file:
-    if "def get_comports(include_links=False):" in file.read():
-        print("The file has already been modified. Skipping patch.")
-        exit(0)
-
-# Define the code to be inserted
-insert_code = """
-def get_comports(include_links=False):
-    import glob
-    from serial.tools.list_ports_linux import SysFS
-    from serial.tools import list_ports_common, list_links
-
-    devices = glob.glob('/dev/ttyS*')           # built-in serial ports
-    devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
-    devices.extend(glob.glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
-    devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
-    devices.extend(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
-    devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
-    devices.extend(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
-    if include_links:
-        devices.extend(list_ports_common.list_links(devices))
-    return [info
-            for info in [SysFS(d) for d in devices]]
-    """
-
-
-# Create a temporary file to store the insert code
-with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-    temp_file.write(insert_code.encode())
-    temp_file_path = temp_file.name
-
-# Insert the code before the function list_serial_ports()
-with open(file_path, 'r') as file:
+    # Check if the file has already been modified
     lines = file.readlines()
 
-with open(file_path, 'w') as file:
-    for line in lines:
-        if "def list_serial_ports()" in line:
-            file.write(insert_code)
-        file.write(line)
+if (newPort in lines):
+    print("The file has already been modified. Skipping patch.")
 
-# Comment out the line ports = serial.tools.list_ports.comports() and add ports = get_comports immediately after
-with open(file_path, 'r') as file:
-    lines = file.readlines()
-
-with open(file_path, 'w') as file:
-    for line in lines:
-        if "ports = serial.tools.list_ports.comports()" in line:
-            file.write("#" + line)
-            file.write("    ports = get_comports()\n")
-        else:
+else:
+    with open(file_path, 'w') as file:
+        for line in lines:
+            if (portStr in line):
+                print(portStr)
+                line =line.replace(portStr, newPort)
+                print("Serial patch applied successfully.  ", line, newPort)
+            
             file.write(line)
 
-print("Serial patch applied successfully.")
-
 # Patch the docker-compose.yml file to add a line after devices:
-# also need to comment out image line
+    
+devString =  "    - \"/dev/ttyS0:/dev/ttyS0\"\n"
+
+
 with open(docker_compose_path, 'r') as file:
     lines = file.readlines()
 
 with open(docker_compose_path, 'w') as file:
-    for line in lines:
-        file.write(line)
-        if "devices:" in line:
-            file.write("  - /dev/ttyS0:/dev/ttyS0\n")
 
-print("docker-compose.yml patched successfully.")
+        if (devString in lines):
+            print("The file has already been modified. Skipping patch.")
+            exit(0)
 
-# Patch the docker-compose.yml file to add a line after /dev/ttyACM0
-with open(docker_compose_path, 'r') as file:
-    content = file.read()
+        for line in lines:
+            file.write(line)
 
-content = content.replace("- /dev/ttyACM0", "- /dev/ttyACM0\n      - \"/dev/ttyS0:/dev/ttyS0\"")
+            if("devices:") in line:
+                file.write(devString)
+                print("docker-compose.yml patched successfully.")
 
-with open(docker_compose_path, 'w') as file:
-    file.write(content)
 
-print("docker-compose.yml patched successfully.")

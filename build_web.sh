@@ -19,11 +19,14 @@ cp WLED/wled00/data/rangetouch.js static/js
 cp WLED/wled00/data/common.js static/js
 cp WLED/wled00/data/404.htm templates
 cp WLED/wled00/data/settings_leds.htm templates
+echo "word count setings.htm"
+wc templates/settings.htm
 cp WLED/wled00/data/settings.htm templates
 
 #<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 #sed "s/toggleLiveView()\"/toggleLiveView()\" hidden/g" |
 echo "Patching index.htm"
+
 
 cat  WLED/wled00/data/index.htm | sed "s/index\.css/ {{ url_for('static', filename='styles\/index.css') }}/g" | 
 sed "s/rangetouch\.js/{{ url_for('static', filename='js\/rangetouch.js') }}/g" |
@@ -122,13 +125,27 @@ EOF
 #sed -i "/var effects = eJson;/a $insert_lines" "$file_to_patch"
 #last is ugly hack, my brain is too tired to deal with sed right now ..
 #sed 's/if (!s) return false/return false/' >> static/js/index.js
+
+
+
+
 echo "$insert_stub"  > static/js/index.js
 cat WLED/wled00/data/index.js |
 sed "s/WebSocket/StubWebSocket/g" |
-
 sed "s/var useWs = (ws && ws.readyState === StubWebSocket.OPEN);/var useWs = false/" >> static/js/index.js
+
+
+
+echo "xxxword count setttings.htm"
+wc templates/settings.htm
+
 cat WLED/wled00/data/settings.htm |
 sed "s/common\.js/{{ url_for('static', filename='js\/common.js') }}/g" >> templates/settings.htm
+
+
+echo "wxxxord count setttings.htm"
+wc templates/settings.htm
+
 perl  -i -pe "s/var effects = eJson;/$insert_effects/" static/js/index.js
 
 # Insert a return after the text "function showErrorToast() {" in index.js
