@@ -7,7 +7,8 @@ import filecmp
 
 # Define the path for the systemd service file
 service_file_path = '/etc/systemd/system/dune-weaver-wled.service'
-working_directory = '/home/kodell/test1/dune-weaver-wled-server'
+# Use the current working directory
+working_directory = os.getcwd()
 local_service_file = 'dune-weaver-wled.service'
 
 # Get the current working directory
