@@ -19,6 +19,7 @@ This is supposed do the following (supposed to - needs more fresh install testin
 * If needed, populate the WLED submodule
 * If needed create or modify the service file
 * Start the service
+  
 The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver setting menu to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
 
 I may need to  modify this script to blacklist the snd_bcm2835 module and disable audio, but so far it hasn't seemed necessary.   If you want, you can install this and test it without any of the wiring/hardware changes.   The software will have no idea if anything is connected to GPIO 18.
