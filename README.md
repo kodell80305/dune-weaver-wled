@@ -13,9 +13,10 @@ The web pages are all directly from the WLED project.  I've included WLED as a s
 ```sudo python install_scripts/startService.py start```.  
 
 This is supposed do the following (supposed to - needs more fresh install testing):
-* If needed, populate the WLED submodule
+
 * If needed, install packages from requirements.txt.  Note that the "--break-system-packages" flag is used.
-* If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (eliminate websocket, hide unsupported features, work in flask, etc.) 
+* If needed, dynamically build the templates and static directories used by the flask web server from the WLED sources (eliminate websocket, hide unsupported features, work in flask, etc.)
+* If needed, populate the WLED submodule
 * If needed create or modify the service file
 * Start the service
 The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver setting menu to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
@@ -55,6 +56,14 @@ Effects currently implemented - it's relatively simple to add more, but I won't 
 ## Software
 
 This is implemented as a flask web server thread and a backend thread that runs the rpi_ws281x software.  The rpi_ws281x needs to run as root, while the flask web server doesn't/shouldn't (although it currently does ...).   Even at root the flask server has permission issues with reading/writing to /dev/mem (required by rpi_281x).  I think I've overcome these with this architecture, but this is still an area of concern as I don't fully understand some of the problems I've seen.  If you have problems it's most likely from either the wiring or some arcane permission problem that occurs on your system but not mine.  Please let me know so I can work through them (the best contact would be kodell8003052gmail.com)
+
+### Adding additional effects
+
+Effects IDs need to match those in the official WLED documentation https://kno.wled.ge/features/effects/.   The file new_effects.js (used for the web ui patch) and the data in effects_list in wled_rpi.py need to have the effect name and id updated in them to show/work correctly.   Other than that any effect needs to call checkCancel() on a periodic basis.  I would like to keep this to the current two threads (flask/rpi_ws281x interface) so all timing/scheduling will need to be done from the rpi_ws281x thread
+
+### Patching WEB UI
+
+The patch process is a little tricky at times.   I've needed modify the HTML, javascript/web socket code.  For the most part I've tried to hide elements or stub them out(websocket class) rather than delete them (since deleting may cause other issues with missing resources).   When the build_web.py script is run it makes a copy of the old templates and static directory and places them in the backup_web directory (if it exists).  There is a tool compare_backups.py that looks for the differences between the files ... it's useful because you may not always notice when something went wrong when changing these pages.
 
 ## Docker, virtual environment
 
