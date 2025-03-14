@@ -2,7 +2,7 @@
 
 ## The really short introduction
 
-For those with short attention spans who just want to try this software
+For those with short attention spans who just want to try this software copy and paste the following into your Raspberry Pi terminal session:
 ```
 git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
