@@ -151,10 +151,6 @@ def TheaterRainbow(strip, wait_ms=50):
                  strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
-    
-
-#this is the complete list ... we need to send this back to the web server
-from effects_list import effects_list2
 
 effects_list = [
     {
@@ -222,25 +218,6 @@ def get_effects():
     json_effects = []
     return json.loads(effects_data)
 
-def check_effects(effect_id): 
-    effect = next((effect for effect in effects_list2 if effect['ID'] == str(effect_id)), None)
-    if effect:
-        name = effect['Effect']
-        print("Running effect", name, "with id", effect_id)
-        
-        # Find the equivalent effect in effects_list
-        
-        equivalent_effect = next((e for e in effects_list if e['Effect'] == name), None)
-        if equivalent_effect:
-            print(f"Equivalent effect found: {equivalent_effect['Effect']}")
-            # You can now run the equivalent effect function if needed
-            # equivalent_effect['func'](strip)
-            return equivalent_effect['func']
-        else:
-            print(f"No equivalent effect found for {name}")
-    else:
-        print("Effect with id", effect_id, "not found")
-        return None
 
 
 def run_effects(effect_id):
@@ -303,27 +280,11 @@ def init_rpi():
   
     strip.begin()
 
-def init_effects():
-    for effect2 in effects_list2:
-        name = effect2['Effect']
-        equivalent_effect = None
-        for e in effects_list:
-            if e['Effect'] == name:
-                equivalent_effect = e
-                break
-        if equivalent_effect:
-            print(f"Adding ID {effect2['ID']} to effect {name}")
-            equivalent_effect['ID'] = effect2['ID']
  
-
 def run_rpi_app():
     global current_effect
 #
 
-#Need to patch the index.js file instead 
-    init_effects()
-
-    
     for i in range(0, config.SEGMENT_0_START):
         strip.setPixelColor(i, Color(128,128,128))
     

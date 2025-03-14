@@ -51,13 +51,7 @@ def patch_index_html():
             line = line.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
             line = line.replace("index.js", "{{ url_for('static', filename='js/index.js') }}")
             line = line.replace("toggleSync()\"", "toggleSync()\" hidden")
-
             line = line.replace("toggleLiveview()\"", "toggleLiveview()\" hidden")
-                        #todo extra quote her/
-            if("toggleInfo()") in line:
-                print("toggleInfo() found")
-#                continue
-#            line = line.replace("toggleInfo()", "toggleInfo()\" hidden ")
             line = line.replace("settings');\"", "settings');\" hidden")
             line = line.replace("iro.js", "{{ url_for('static', filename='js/iro.js') }}")
             line = line.replace(">Reboot WLED", " hidden>Reboot WLED")
@@ -69,14 +63,9 @@ def patch_index_html():
 def patch_settings_html():
     print("Patching settings.htm")
     with open("WLED/wled00/data/settings.htm", "r") as infile, open("templates/settings.htm", "w") as outfile:
-       
         content = infile.read()
-   
-        print(f'****** content start {len(content)}')
-  
-        ncontent = content.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
-        print(f'****** content now {len(content)}')
-        outfile.write(content + ncontent)
+        content = content.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
+        outfile.write(content)
 
 
 def create_stub_websocket():
@@ -142,6 +131,19 @@ StubWebSocket.CLOSED = 3;
     with open("static/js/index.js", "w") as outfile:
         outfile.write(stub_websocket)
 
+def generate_inforow(line, key, label, value):
+    """
+    Generate an inforow line for the index.js file if the key is in the line.
+    :param line: The current line being processed.
+    :param key: The key to identify the inforow (e.g., "Build").
+    :param label: The label to display (e.g., "Build").
+    :param value: The value to display (e.g., "Dune Weaver WLED").
+    :return: The modified line if the key matches, otherwise the original line.
+    """
+    if "inforow" in line and key in line:
+        return f'${{inforow("{label}","{value}")}}'
+    return line
+
 def patch_index_js():
     print("Patching index.js")
 
@@ -165,58 +167,28 @@ def patch_index_js():
                 line = new_effects
             outfile.write(line)
 
+    inforow_data = [
+        ("Build", "Build", "Dune Weaver WLED"),
+        ("Time", " ", " "),
+        ("Signal strength", " ", " "),
+        ("Uptime", "Not Official WLED", "so don't blame them"),
+        ("Free heap", "But do support them", "it's a great resource"),
+        ("Environment", " ", " "),
+        ("Flash size", " ", " "),
+        ("CPU clock", " ", " "),
+        ("MAC address", " ", " "),
+        ("Estimated current", " ", " "),
+        ("Average FPS", " ", " "),
+        ("Filesystem", " ", " ")
+    ]
+
     with open("static/js/index.js", "r") as infile:
         lines = infile.readlines()
 
     with open("static/js/index.js", "w") as outfile:
         for line in lines:
-            #Format of the table
-            #${inforow("nothing strength",i.wifi.signal +"% ("+ i.wifi.rssi, " dBm)")}
-
-            if("inforow" in line):
-
-                if "Build" in line:
-                    line = '''${inforow(\"Build","Dune Weaver WLED")}'''
-
-
-            
-                if "Time" in line:
-                    line = '''${inforow(" "," ")}'''
-
-                if("Signal strength") in line:
-                    line = '''${inforow(" "," ")}'''
-
-                if("Uptime") in line:
-                    line = '''${inforow(\"Not Official WLED","so don't blame them\")}'''
-
-                if("Free heap") in line:
-                    line = '''${inforow(\"But do support them","it's a great resource\")}'''
-                
-                
-                if("Environment") in line:
-                    line = '''${inforow(" "," ")}'''
-                
-                        
-                if("Flash size") in line:
-                    line = '''${inforow(" "," ")}'''
-                    
-                if("CPU clock") in line:
-                    line = '''${inforow(" "," ")}'''
-
-                if("MAC address") in line:
-                    line = '''${inforow(" "," ")}'''
-
-                
-                if("Estimated current") in line:
-                    line = '''${inforow(" "," ")}'''
-
-                if("Average FPS") in line:
-                    line = '''${inforow(" "," ")}'''
-
-                if("Filesystem") in line:
-                    line = '''${inforow(" "," ")}'''
-
-
+            for key, label, value in inforow_data:
+                line = generate_inforow(line, key, label, value)
             outfile.write(line)
 
 def main():
@@ -224,10 +196,12 @@ def main():
     check_submodule()
     backup_directories()
     
+    print("Creating directories templates, static/styles, static/js")
     os.makedirs("templates", exist_ok=True)
     os.makedirs("static/styles", exist_ok=True)
     os.makedirs("static/js", exist_ok=True)
-
+    
+    print("Copying files from WLED submodule")
     copy_files()
     patch_index_html()
     patch_settings_html()

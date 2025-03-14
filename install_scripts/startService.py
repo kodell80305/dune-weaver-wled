@@ -34,23 +34,12 @@ Group=root
 WantedBy=multi-user.target
 """
 
-def set_permissions():
-    uid = pwd.getpwnam("root").pw_uid
-    gid = grp.getgrnam("root").gr_gid
-    os.chown(working_directory, uid, gid)
-    for root, dirs, files in os.walk(working_directory):
-        for dir_ in dirs:
-            os.chown(os.path.join(root, dir_), uid, gid)
-        for file_ in files:
-            # Skip files created by build_web.py
-            if 'build_web.py' not in file_:
-                os.chown(os.path.join(root, file_), uid, gid)
 
 def check_index_file():
     index_file_path = os.path.join(working_directory, 'templates/index.htm')
     if not os.path.exists(index_file_path):
         print(f"Error: {index_file_path} not found. Running build_web.py...")
-        build_web_script = os.path.join(working_directory, 'build_web.py')
+        build_web_script = os.path.join(working_directory, 'install_scripts/build_web.py')
         # Get the owner of the working directory
         dir_owner = pwd.getpwuid(os.stat(working_directory).st_uid).pw_name
         # Run build_web.py as the directory owner
