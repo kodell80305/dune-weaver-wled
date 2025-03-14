@@ -9,7 +9,7 @@ def run_command(command):
     return result.stdout.decode('utf-8')
 
 def check_submodule():
-    if not os.path.exists("WLED"):
+    if not os.path.exists("WLED/wled00"):
         print("Submodule WLED not found. Initializing submodule...")
         run_command("git submodule update --init")
         run_command("git submodule update")
