@@ -34,12 +34,23 @@ Group=root
 WantedBy=multi-user.target
 """
 
+def set_permissions():
+    uid = pwd.getpwnam("root").pw_uid
+    gid = grp.getgrnam("root").gr_gid
+    os.chown(working_directory, uid, gid)
+    for root, dirs, files in os.walk(working_directory):
+        for dir_ in dirs:
+            os.chown(os.path.join(root, dir_), uid, gid)
+        for file_ in files:
+            # Skip files created by build_web.py
+            if 'build_web.py' not in file_:
+                os.chown(os.path.join(root, file_), uid, gid)
 
 def check_index_file():
     index_file_path = os.path.join(working_directory, 'templates/index.htm')
     if not os.path.exists(index_file_path):
         print(f"Error: {index_file_path} not found. Running build_web.py...")
-        build_web_script = os.path.join(working_directory, 'install_scripts/build_web.py')
+        build_web_script = os.path.join(working_directory, 'build_web.py')
         # Get the owner of the working directory
         dir_owner = pwd.getpwuid(os.stat(working_directory).st_uid).pw_name
         # Run build_web.py as the directory owner
@@ -90,6 +101,10 @@ def stop_service():
     os.system('systemctl stop dune-weaver-wled.service')
     print("Systemd service for Dune Weaver WLED Application stopped.")
 
+def restart_service():
+    os.system('systemctl restart dune-weaver-wled.service')
+    print("Systemd service for Dune Weaver WLED Application restarted.")
+
 def uninstall_service():
     # Stop the service if it is running
     os.system('systemctl stop dune-weaver-wled.service')
@@ -117,7 +132,7 @@ def uninstall_service():
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python startService.py <start|stop|uninstall>")
+        print("Usage: python startService.py <start|stop|restart|uninstall>")
         sys.exit(1)
 
     action = sys.argv[1].lower()
@@ -126,8 +141,10 @@ if __name__ == "__main__":
         start_service()
     elif action == "stop":
         stop_service()
+    elif action == "restart":
+        restart_service()
     elif action == "uninstall":
         uninstall_service()
     else:
-        print("Invalid argument. Use 'start', 'stop', or 'uninstall'.")
+        print("Invalid argument. Use 'start', 'stop', 'restart', or 'uninstall'.")
         sys.exit(1)
