@@ -10,7 +10,7 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 
 The web pages are all directly from the WLED project.  I've included WLED as a submodule. Note that I have not tested this software using a virtual environment or using docker.  After cloning the repo, you should be able to run 
 
-```sudo python startService.py```.  
+```sudo python install_scripts/startService.py```.  
 
 This is supposed do the following (supposed to - needs more fresh install testing):
 * If needed, populate the WLED submodule
@@ -63,20 +63,31 @@ numpy==1.24.2
 openpyxl==3.1.5
 paho_mqtt==2.1.0
 pandas==2.2.3
-platformio==6.1.18
+platformio==6.1.18https://github.com/kodell80305/dune-weaver-wled.git
 plotly==6.0.0
 Requests==2.32.3
 rpi_ws281x==5.0.0
 ```
 at the moment I'm a little confused about where some of these dependancies came from.  I'll need to start with a clean environment and regenerate this file.
 
+## Testing procedure and installation
+
+Run on standard Ombonad Dune Weaver table.   Fresh install latest 64 bit Bookworm 88following the https://github.com/tuanchris/dune-weaver/wiki/Deploying-backend-code instructions.   Software version <??>
+```
+git clone  https://github.com/kodell80305/dune-weaver-wled.git
+cd dune-weaver-wled
+sudo python install_scrips/startService.py start
+```
+
 ## Uninstall
 
-The startSerice.py program will also uninstall the service.
+The startSerice.py program will also uninstall or restart the service.
 ```
-Usage: python startService.py <start|stop|uninstall>
+Usage: python install_scripts/startService.py <start|stop|restart|uninstall>
 ```
 
-This one is minimally tested.   Any python packages installed will remain, so it doesn't completely restore your system to it's original state.  If you're using the Pi Zero 2w to store your bitcoin or other really important information you might want to rethink some of your life choices ...
+This one is minimally tested.   Any python packages installed will remain, so it doesn't completely restore your system to it's original state.  If you're using the Pi Zero 2w with prototype software to store your bitcoin or other really important information you might want to rethink some of your life choices ...
+
+
 
 
