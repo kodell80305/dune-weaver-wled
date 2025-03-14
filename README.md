@@ -76,7 +76,7 @@ Run on standard Ombonad Dune Weaver table.   Fresh install latest 64 bit Bookwor
 ```
 git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
-sudo python install_scrips/startService.py start
+sudo python install_scripts/startService.py start
 ```
 
 ## Uninstall
