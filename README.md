@@ -8,7 +8,9 @@ git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
 sudo python install_scripts/startService.py start
 ```
-That's it, you're done.   I've tried to make this as simple as possible for people to try.  Wait until the service has started and open a browser with the address of your Raspberry Pi.   
+That's it, you're done as far as the software is concerned.  Wait until the service has started and open a browser with the address of your Raspberry Pi.
+
+If you want to actually see the LEDs you'll need to hook up the data up to GPIO 18.
 
 ## If you're still here
 
@@ -114,6 +116,32 @@ Usage: python install_scripts/startService.py <start|stop|restart|uninstall>
 
 This one is minimally tested.   Any python packages installed will remain, so it doesn't completely restore your system to it's original state.  If you're using the Pi Zero 2w with prototype software to store your bitcoin or other really important information you might want to rethink some of your life choices ...
 
+## API needing to be tested/supported
 
+The WEB UI is mostly complete, with the exception of configuration.   I'm not able to use the settings_led.htm 
+page. so I'll need to code that from scratch to get configuration for number of leds, led strip type
+### Setting brightness, power
+
+Should already work
+
+### Specific Effects
+
+Only effect id 0 (solid) and 47 (Loading) are used.  I can implement something appropriate for 47, it may not match WLED exactly.   I can add the parameters fairly easily.
+
+Effect id 47 is Loading 
+Loading	Moves a sawtooth pattern along the strip
+	⋮	🎨 Fx, Bg	Speed, Fade
+
+# Preset 1, 2
+
+Are used.   These I'm planning on having some default, plausible action but you won't be able to modify it.
+effect id, brightness, hex  (0, 47
+preset 1, 2
+
+{"bri": value}
+{"on": "t"}
+{"seg": [seg]}
+{"ps": preset_id})        preset 1, 2
+{"seg": [seg] }  seg 0, 1?
 
 
