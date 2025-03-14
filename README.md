@@ -30,7 +30,7 @@ I've tested only with the Raspberry Pi 4 and the Zero 2w along with the mks dlc3
 Features implemented are going to be those that are used on the Dune Weaver project, but the intentions is to be as compatible as possible with the WLED functions.
 
 ## What it does
-Isn't too hard to explain, since it should behave exactly like WLED in this environment (I'm not planning on re-inventing WLED ... this only incorporates needed/useful features for the Dune Weaver project.   It is (in my opinion) usable at this point, but it's not feature complete.  A short list of missing features includes:
+Isn't too hard to explain, since it should behave exactly like WLED in this environment (I'm not planning on re-inventing WLED ... this only incorporates needed/useful features for the Dune Weaver project).   It is (in my opinion) usable at this point, but it's not feature complete.  A short list of missing features includes:
 
 * Configuration from the web interface - this is high on my list.  As of right now, strip type, number of leds, segment definitions, default color, etc. are all hard coded.  Power, brightness, color picking and a limited number of effects work.
 * Timer not implemented.
@@ -41,7 +41,7 @@ Isn't too hard to explain, since it should behave exactly like WLED in this envi
 * Parameters for effects (transition time, color, speed, etc.) are not yet implemented
 * There is a lot of cleanup needed, both in the repository and I the actual code.
 
-Everything that hasn't been hidden is there  because I'm planning on implementing it.
+Everything that hasn't been hidden is there  because I'm planning on implementing it.  I don't see any difficulty or major time needed for any of these.
 
 ![Screenshot 2025-03-13 153459](https://github.com/user-attachments/assets/d07e8e04-9c14-45f4-9f9e-44ea58be0062)
 
