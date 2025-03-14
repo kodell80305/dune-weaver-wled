@@ -37,7 +37,9 @@ Isn't too hard to explain, since it should behave exactly like WLED in this envi
 * Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
 * Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
 * Some needed effects, playlists are not yet implemented.
-* There is a lot of cleanup needed, both in the repository and in the actual code.
+* I'm not sure if the behavior matches WLED in all cases - I need to do some direct comparisions
+* Parameters for effects (time, color, etc. are not yet implemented
+* There is a lot of cleanup needed, both in the repository and I the actual code.
 
 Everything that hasn't been hidden is there  because I'm planning on implementing it.
 
