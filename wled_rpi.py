@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# NeoPixel library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.
-
 import time
 import argparse
 import math
@@ -74,6 +67,15 @@ current_func = None
 current_color = config.DEFAULT_COLOR
 
 
+#I don't think it really matters what we return from get_effects() anymore ... the javascript is 
+#being overridden.
+
+effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\"]"
+
+def get_effects():
+    json_effects = []
+    return json.loads(effects_data)
+
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
     if pos < 85:
@@ -95,7 +97,6 @@ def Rainbow(strip, wait_ms=20, iterations=1):
         time.sleep(wait_ms / 1000.0)
        
         if checkCancel():
-            print("cancelling rainbow")
             return
 
 # Define functions which animate LEDs in various ways.
@@ -211,101 +212,20 @@ def checkCancel():
         return True
     return False    
 
-#effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\"]"
-effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\",\"Wipe Random\",\"Random Colors\",\"Sweep\",\"Dynamic\",\"Colorloop\",\"Rainbow\",\"Scan\",\"Scan Dual\",\"Fade\",\"Theater\",\"Theater Rainbow\",\"Running\",\"Saw\",\"Twinkle\",\"Dissolve\",\"Dissolve Rnd\",\"Sparkle\",\"Sparkle Dark\",\"Sparkle+\",\"Strobe\",\"Strobe Rainbow\",\"Strobe Mega\",\"Blink Rainbow\",\"Android\",\"Chase\",\"Chase Random\",\"Chase Rainbow\",\"Chase Flash\",\"Chase Flash Rnd\",\"Rainbow Runner\",\"Colorful\",\"Traffic Light\",\"Sweep Random\",\"Chase 2\",\"Aurora\",\"Stream\",\"Scanner\",\"Lighthouse\",\"Fireworks\",\"Rain\",\"Tetrix\",\"Fire Flicker\",\"Gradient\",\"Loading\",\"Rolling Balls\",\"Fairy\",\"Two Dots\",\"Fairytwinkle\",\"Running Dual\",\"RSVD\",\"Chase 3\",\"Tri Wipe\",\"Tri Fade\",\"Lightning\",\"ICU\",\"Multi Comet\",\"Scanner Dual\",\"Stream 2\",\"Oscillate\",\"Pride 2015\",\"Juggle\",\"Palette\",\"Fire 2012\",\"Colorwaves\",\"Bpm\",\"Fill Noise\",\"Noise 1\",\"Noise 2\",\"Noise 3\",\"Noise 4\",\"Colortwinkles\",\"Lake\",\"Meteor\",\"Meteor Smooth\",\"Railway\",\"Ripple\",\"Twinklefox\",\"Twinklecat\",\"Halloween Eyes\",\"Solid Pattern\",\"Solid Pattern Tri\",\"Spots\",\"Spots Fade\",\"Glitter\",\"Candle\",\"Fireworks Starburst\",\"Fireworks 1D\",\"Bouncing Balls\",\"Sinelon\",\"Sinelon Dual\",\"Sinelon Rainbow\",\"Popcorn\",\"Drip\",\"Plasma\",\"Percent\",\"Ripple Rainbow\",\"Heartbeat\",\"Pacifica\",\"Candle Multi\",\"Solid Glitter\",\"Sunrise\",\"Phased\",\"Twinkleup\",\"Noise Pal\",\"Sine\",\"Phased Noise\",\"Flow\",\"Chunchun\",\"Dancing Shadows\",\"Washing Machine\",\"RSVD\",\"Blends\",\"TV Simulator\",\"Dynamic Smooth\",\"Spaceships\",\"Crazy Bees\",\"Ghost Rider\",\"Blobs\",\"Scrolling Text\",\"Drift Rose\",\"Distortion Waves\",\"Soap\",\"Octopus\",\"Waving Cell\",\"Pixels\",\"Pixelwave\",\"Juggles\",\"Matripix\",\"Gravimeter\",\"Plasmoid\",\"Puddles\",\"Midnoise\",\"Noisemeter\",\"Freqwave\",\"Freqmatrix\",\"GEQ\",\"Waterfall\",\"Freqpixels\",\"RSVD\",\"Noisefire\",\"Puddlepeak\",\"Noisemove\",\"Noise2D\",\"Perlin Move\",\"Ripple Peak\",\"Firenoise\",\"Squared Swirl\",\"RSVD\",\"DNA\",\"Matrix\",\"Metaballs\",\"Freqmap\",\"Gravcenter\",\"Gravcentric\",\"Gravfreq\",\"DJ Light\",\"Funky Plank\",\"RSVD\",\"Pulser\",\"Blurz\",\"Drift\",\"Waverly\",\"Sun Radiation\",\"Colored Bursts\",\"Julia\",\"RSVD\",\"RSVD\",\"RSVD\",\"Game Of Life\",\"Tartan\",\"Polar Lights\",\"Swirl\",\"Lissajous\",\"Frizzles\",\"Plasma Ball\",\"Flow Stripe\",\"Hiphotic\",\"Sindots\",\"DNA Spiral\",\"Black Hole\",\"Wavesins\",\"Rocktaves\",\"Akemi\"]"
-
-def get_effects():
-    json_effects = []
-    return json.loads(effects_data)
-
-
-
 def run_effects(effect_id):
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
     if effect:
         function = effect['func']
-        print("Running effect", effect['Effect'], "with id", effect_id, "and function", function)
+        print("Running effect", effect['Effect'], "with id", effect_id)
 
         try:
             function(strip)
   
         except Exception as e:
-            print("Error running effect", effect['Effect'], "with id", effect_id, "and function", function)
             print(e)
     else:
         print("Effect with id", effect_id, "not found")
 
-
-
-
-
-def update_effect(effect_id):
-    global current_effect, current_pl
-    print("in update_effect()", effect_id)
-    current_pl  =  -1
-    current_effect = effect_id
-
-def update_effect2(effect_id):
-    global current_effect, current_pl, current_func
-
-    print("in update_effect()", effect_id)
-
-    current_func = check_effects(effect_id) 
-    
-    current_pl  =  -1
-    current_effect = effect_id
-
-    if current_func:
-        print("in update_effect() - found effect id ", effect_id)
-    else:
-        print("in update_effect() - did not find effect id ", effect_id)
-
-    return current_func
-
-
-
-
-def update_playlist(playlist_id):
-    global current_effect, current_pl   
-    print("in update_playlist()", playlist_id)
-    current_pl = playlist_id
-    current_effect = -1
-
-
-def init_rpi():
-    global strip
-
-    print("Initializing", config.LED_COUNT)
-    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR )
-  
-    strip.begin()
-
- 
-def run_rpi_app():
-    global current_effect
-#
-
-    for i in range(0, config.SEGMENT_0_START):
-        strip.setPixelColor(i, Color(128,128,128))
-    
-    try:
-        print('Waiting for cmd')      
-        while True:
-            time.sleep(100/1000.0)
-            
-            if not config.myQueue.empty():
-                func, args = config.myQueue.get()
-                func(*args)
-
-            if(current_effect > 0):
-                run_effects(current_effect)
-
-
-    except Exception as e: # KeyboardInterrupt:
-        breakpoint()
-        all_off()
-
-    
 def update_bri(bri_arg):
     strip.setBrightness(bri_arg)
     strip.show()
@@ -332,6 +252,52 @@ def set_led(led_colors):
     for i in range(config.SEGMENT_0_START, strip.numPixels()):
         strip.setPixelColor(i, Color(*led_colors[i]))
     strip.show()
+
+def update_effect(effect_id):
+    global current_effect, current_pl
+    current_pl  =  -1
+    current_effect = effect_id
+
+
+def update_playlist(playlist_id):
+    global current_effect, current_pl   
+    print("in update_playlist()", playlist_id)
+    current_pl = playlist_id
+    current_effect = -1
+
+
+def init_rpi():
+    global strip
+
+    print("Initializing ", config.LED_COUNT)
+    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR )
+    strip.begin()
+
+ 
+def run_rpi_app():
+    global current_effect
+#
+
+    for i in range(0, config.SEGMENT_0_START):
+        strip.setPixelColor(i, Color(0,128,0))
+    
+    strip.show()
+    
+    try:    
+        while True:
+            if not config.myQueue.empty():
+                func, args = config.myQueue.get()
+                func(*args)
+
+            if(current_effect > 0):
+                run_effects(current_effect)
+            else:
+                time.sleep(100/1000.0)
+
+
+    except Exception as e: 
+        all_off()
+        
 
 
 

@@ -6,3 +6,4 @@ templates/
 static/
 .env
 backup_web/
+.requriements_installed

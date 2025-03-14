@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import time
 from datetime import datetime
+import argparse
 
 def run_command(command):
     result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -16,7 +17,11 @@ def check_submodule():
     else:
         print("Submodule WLED already populated.")
 
-def backup_directories():
+def backup_directories(enable_backup):
+    if not enable_backup:
+        print("Backup creation is disabled.")
+        return
+
     timestamp = datetime.now().strftime("web-%Y-%m%dT%H:%M")
     backup_dir = os.path.join("backup_web", timestamp)
     os.makedirs(backup_dir, exist_ok=True)
@@ -40,47 +45,128 @@ def copy_files():
     for src, dst in files_to_copy:
         run_command(f"cp {src} {dst}")
 
+
+def display_none(line, key):
+    if f">{key}" in line:
+        line = line.replace(f">{key}", f" style=\"display: none;\">{key}")
+        print(f"    {line.lstrip()}", end="")
+    return line
+
+
+
+def fix_url(line):
+    url_mappings = [
+        ("styles", "index.css"),
+        ("js", "rangetouch.js"),
+        ("js", "common.js"),
+        ("js", "index.js"),
+        ("js", "iro.js")
+    ]
+
+    for type_, page in url_mappings:
+        if page in line and "url_for" not in line:
+            line = line.replace(page, f"{{{{ url_for('static', filename='{type_}/{page}') }}}}")
+            print(f"    {line.lstrip()}", end="")
+    return line
+
+def hide_button(line, button):
+    """
+    Replace the specified button string with 'hidden<button>' in the given line.
+    :param line: The input string to process.
+    :param button: The button string to hide.
+    :return: The modified string with the button hidden, or the original line if the button is not found.
+    """
+    if button not in line:
+        return line
+
+    line = line.replace(button, f" hidden{button}")
+    print(f"    {line.lstrip()}", end="")
+    return line
+
+
+def hide_button_post(line, button):
+    """
+    Replace the specified button string with 'hidden<button>' in the given line.
+    :param line: The input string to process.
+    :param button: The button string to hide.
+    :return: The modified string with the button hidden, or the original line if the button is not found.
+    """
+    if button not in line:
+        return line
+
+    if "hidden" not in line:
+        line = line.replace(button, f" {button} hidden")
+        print(f"    {line.lstrip()}", end="")
+
+    return line
+
 def patch_index_html():
     print("Patching index.htm")
 
-    
+    buttons_to_hide = [
+        ">Reboot WLED",
+        ">Update WLED",
+        ">Instance",
+        ">Reset segments"
+    ]
+
+    buttons_to_hide_post = [
+        "toggleLiveview()\"",
+        "toggleSync()\"",
+        "toggleNodes()\""
+    ]
     with open("WLED/wled00/data/index.htm", "r") as infile, open("templates/index.htm", "w") as outfile:
         for line in infile:
-            line = line.replace("index.css", " {{ url_for('static', filename='styles/index.css') }}")
-            line = line.replace("rangetouch.js", "{{ url_for('static', filename='js/rangetouch.js') }}")
-            line = line.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
-            line = line.replace("index.js", "{{ url_for('static', filename='js/index.js') }}")
-            line = line.replace("toggleSync()\"", "toggleSync()\" hidden")
-            line = line.replace("toggleLiveview()\"", "toggleLiveview()\" hidden")
-            line = line.replace("settings');\"", "settings');\" hidden")
-            line = line.replace("iro.js", "{{ url_for('static', filename='js/iro.js') }}")
-            line = line.replace(">Reboot WLED", " hidden>Reboot WLED")
-            line = line.replace(">Update WLED", " hidden>Update WLED")
-            line = line.replace(">Instance", " hidden>Instance")
-            line = line.replace(">Reset segments", " hidden>Reset segments")
+            line = fix_url(line)
+            for button in buttons_to_hide:
+                line = hide_button(line, button)
+            for button in buttons_to_hide_post:
+                line = hide_button_post(line, button)
             outfile.write(line)
 
 def patch_settings_html():
     print("Patching settings.htm")
-    with open("WLED/wled00/data/settings.htm", "r") as infile, open("templates/settings.htm", "w") as outfile:
-        content = infile.read()
-        content = content.replace("common.js", "{{ url_for('static', filename='js/common.js') }}")
-        outfile.write(content)
 
+    buttons_to_hide = ["Security & Updates",
+                       "Usermods",
+                       "Time & Macros",
+                          "Sync Interfaces",
+                          "User Interface",
+                          "2D Configuration",
+                          "WiFi Setup"
+    ]
+
+    with open("WLED/wled00/data/settings.htm", "r") as infile:
+        lines = infile.readlines()
+
+    with open("templates/settings.htm", "w") as outfile:
+        for line in lines:
+            line = fix_url(line)
+            for button in buttons_to_hide:
+                line = display_none(line, button)
+            outfile.write(line)
 
 def create_stub_websocket():
-    print("Create StubWebSocket class")
+    print("    create StubWebSocket class")
+    
     stub_websocket = """class StubWebSocket {
+
   constructor(url) {
     this.url = url;
     this.readyState = StubWebSocket.CONNECTING;
     this.sentMessages = [];
+
+    console.log("Creating StubWebSocket");
+
+
     
     // Simulate connection opening after a short delay
     setTimeout(() => {
-      this.readyState = StubWebSocket.OPEN;
+      //this.readyState = StubWebSocket.OPEN;
       if (this.onopen) {
+        console.log("calling onopen");
         this.onopen();
+        //this.readyState = StubWebSocket.OPEN;
       }
     }, 10); 
   }
@@ -101,7 +187,9 @@ def create_stub_websocket():
 
   onopen() {
     console.log('Connected to WebSocket server');
+    this.readyState = StubWebSocket.OPEN;
     this.send('Hello, server!');
+
   }
 
   onmessage(event) {
@@ -152,7 +240,6 @@ def patch_index_js():
     with open("WLED/wled00/data/index.js", "r") as infile, open("static/js/index.js", "a") as outfile:
         for line in infile:
             line = line.replace("WebSocket", "StubWebSocket")
-            line = line.replace("var useWs = (ws && ws.readyState === StubWebSocket.OPEN);", "var useWs = false")
             outfile.write(line)
 
     with open("new_effects.js", "r") as effects_file:
@@ -163,9 +250,12 @@ def patch_index_js():
 
     with open("static/js/index.js", "w") as outfile:
         for line in lines:
-            if "var effects = eJson;" in line:
-                line = new_effects
-            outfile.write(line)
+            if "var effects = eJson;" in line:  # Detect the line where effects are defined
+                outfile.write(line)
+                outfile.write(new_effects)  # Insert the new effects content
+                print(f"    new_effects.js content inserted after 'var effects = eJson;'")
+            else:
+                outfile.write(line)
 
     inforow_data = [
         ("Build", "Build", "Dune Weaver WLED"),
@@ -192,9 +282,13 @@ def patch_index_js():
             outfile.write(line)
 
 def main():
+    parser = argparse.ArgumentParser(description="Build the web interface for Dune Weaver WLED.")
+    parser.add_argument("--backup", action="store_true", help="Enable creation of backup directories.")
+    args = parser.parse_args()
+
     print("Building web interface")
     check_submodule()
-    backup_directories()
+    backup_directories(args.backup)
     
     print("Creating directories templates, static/styles, static/js")
     os.makedirs("templates", exist_ok=True)
@@ -206,8 +300,6 @@ def main():
     patch_index_html()
     patch_settings_html()
     patch_index_js()
-
-
 
 if __name__ == "__main__":
     main()

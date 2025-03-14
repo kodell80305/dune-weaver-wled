@@ -50,6 +50,30 @@ def check_index_file():
             print(f"Error: {index_file_path} still not found after running build_web.py.")
             sys.exit(1)
 
+def check_and_run_build_web():
+    index_file_path = os.path.join(working_directory, 'templates/index.htm')
+    if not os.path.exists(index_file_path):
+        print(f"Error: {index_file_path} not found. Running build_web.py...")
+        build_web_script = os.path.join(working_directory, 'install_scripts/build_web.py')
+        dir_owner = pwd.getpwuid(os.stat(working_directory).st_uid).pw_name
+        if os.system(f'su -c "python3 {build_web_script}" {dir_owner}') != 0:
+            print("Error: Failed to run build_web.py.")
+            sys.exit(1)
+        return
+
+    # Check if any .js or .py file in the root directory is newer than index.htm
+    for file in os.listdir(working_directory):
+        if file.endswith('.js') or file.endswith('.py'):
+            file_path = os.path.join(working_directory, file)
+            if os.path.isfile(file_path) and os.path.getmtime(file_path) > os.path.getmtime(index_file_path):
+                print(f"Detected newer file: {file_path}. Running build_web.py...")
+                build_web_script = os.path.join(working_directory, 'install_scripts/build_web.py')
+                dir_owner = pwd.getpwuid(os.stat(working_directory).st_uid).pw_name
+                if os.system(f'su -c "python3 {build_web_script}" {dir_owner}') != 0:
+                    print("Error: Failed to run build_web.py.")
+                    sys.exit(1)
+                return
+
 def install_requirements():
     requirements_file = os.path.join(working_directory, 'requirements.txt')
     marker_file = os.path.join(working_directory, '.requirements_installed')
@@ -89,7 +113,7 @@ def create_service():
 
 def start_service():
     install_requirements()
-    check_index_file()
+    check_and_run_build_web()
     create_service()
     os.system('systemctl start dune-weaver-wled.service')
     print("Systemd service for Dune Weaver WLED Application started.")
@@ -99,8 +123,8 @@ def stop_service():
     print("Systemd service for Dune Weaver WLED Application stopped.")
 
 def restart_service():
-    os.system('systemctl restart dune-weaver-wled.service')
-    print("Systemd service for Dune Weaver WLED Application restarted.")
+    stop_service()  # Explicitly stop the service
+    start_service()  # Start the service with all necessary checks
 
 def uninstall_service():
     # Stop the service if it is running
@@ -127,12 +151,16 @@ def uninstall_service():
 
     print("Uninstallation of Dune Weaver WLED Application completed.")
 
+def follow_logs():
+    os.system('journalctl -u dune-weaver-wled.service -f')
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python startService.py <start|stop|restart|uninstall>")
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print("Usage: python startService.py <start|stop|restart|uninstall> [--follow]")
         sys.exit(1)
 
     action = sys.argv[1].lower()
+    follow = len(sys.argv) == 3 and sys.argv[2] == "--follow"
 
     if action == "start":
         start_service()
@@ -145,3 +173,6 @@ if __name__ == "__main__":
     else:
         print("Invalid argument. Use 'start', 'stop', 'restart', or 'uninstall'.")
         sys.exit(1)
+
+    if follow and action in {"start", "stop", "restart"}:
+        follow_logs()
