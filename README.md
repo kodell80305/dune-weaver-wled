@@ -8,7 +8,7 @@ git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
 sudo python install_scripts/startService.py start
 ```
-Wait until the service has started and open a browser with the address of your Raspberry Pi.   
+That's it, you're done.   I've tried to make this as simple as possible for people to try.  Wait until the service has started and open a browser with the address of your Raspberry Pi.   
 
 ## If you're still here
 
