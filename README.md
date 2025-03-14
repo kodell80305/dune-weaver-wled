@@ -1,5 +1,16 @@
 # dune-weaver-wled
 
+## The really short introduction
+
+For those with short attention spans who just want to try this software
+```
+git clone  https://github.com/kodell80305/dune-weaver-wled.git
+cd dune-weaver-wled
+sudo python install_scripts/startService.py start
+```
+Wait until the service has started and open a browser with the address of your Raspberry Pi.   
+
+## If you're still here
 
 This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  The Dune Weaver project uses standalone WLED devices to control the lighting for the sand table.   The project uses a Raspberry Pi to control a CNC board (mks dlc32 running Fluidnc).   Since the Raspberry Pi Zero 2w is an essential part of the system, I've implemented WLED compatible software to replace the additional ESP32 device.  The commercial WLED devices are probably far less hassle and provide some needed level shifting/wiring simplification as well as many more features, so using these might be your best choice.   I was interested in having one less device that needs to be on my network and simplifing the overall hardware design, so I've implemented this software.
 
