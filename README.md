@@ -25,7 +25,8 @@ The web pages are all directly from the WLED project.  I've included WLED as a s
 
 ```
 sudo python install_scripts/startService.py start
-```.  
+```
+
 
 This is supposed do the following (supposed to - needs more fresh install testing):
 
@@ -51,7 +52,11 @@ will update the software to the latest version.
 This has only been tested on the Pi Zero 2w and the Pi 4 using the latest 64 bit Bookworm OS (Version 12), freshly installed and updated.   The startService.py program (may or may not) won't work correctly on other versions/operating systems, but everything it does can be done manually.   I'm doing testing for real time, latency, memory usage.  So far everything seems very good.  Very little real time is used.  I've only tested with the 12V led strips ws2815 and the ws2811.   With 80 leds,  the The Pi Zero 2w uses about 8% of it's memory (I used the additional LEDs as a separate segment for under table lighting).   This is enough for the ws2815 on the Ombonad table or the ws2811 on with the Dune Weaver Pro version.   I'll do some additional testing with 180 leds for the ws2815 on the Dune Weaver Pro.
 
 ## Hardware configuration
+
 I've tested only with the Raspberry Pi 4 and the Zero 2w along with the mks dlc32 boad supplying power for both the Pi and the LED strip.   Because the data signal from the Pis is marginal without level shifters it seems like good ground connections (and a good data connection) are essential.  I run a ground wire from the mks dlc32 and one from the Pi and connect them together at the LED JST connector.   I'm planning on doing some additional testing with the various methods of incorporating level shifters into the data line.
+
+Running with patterns and 200 LEDs consumes 8% of the memory and less than 2% of the CPU on the Pi Zero 2W.   There seems to be no issue with real time, memory or latency that I've been able to detect.
+
 Features implemented are going to be those that are used on the Dune Weaver project, mimicking the WLED web interface and JSON api.
 
 ## What it does
@@ -75,8 +80,6 @@ Effects currently implemented - it's relatively simple to add more, but I won't 
 
 ![Screenshot 2025-03-13 153736](https://github.com/user-attachments/assets/a71a28f3-fded-46dc-bcdf-b3394b0f462a)
 
-
-
 ## Software
 
 This is implemented as a flask web server thread and a backend thread that runs the rpi_ws281x software.  The rpi_ws281x needs to run as root, while the flask web server doesn't/shouldn't (although it currently does ...).   Even at root the flask server has permission issues with reading/writing to /dev/mem (required by rpi_281x).  I think I've overcome these with this architecture, but this is still an area of concern as I don't fully understand some of the problems I've seen.  If you have problems it's most likely from either the wiring or some arcane permission problem that occurs on your system but not mine.  Please let me know so I can work through them (the best contact would be kodell8003052gmail.com)
@@ -92,21 +95,6 @@ The patch process is a little tricky at times.   I've needed modify the HTML, ja
 ## Docker, virtual environment
 
 I haven't really investigaged running in these conditions.   Docker can be somewhat strange when it comes with interfacing with hardware and supporting this is probably never going to be a priority for me.  There should be no reason that virtual environments will be an issue, but this is untested.  The service itself currently runs at root level due to the access of /dev/mem.  
-
-
-requirements.txt can probably be trimmed down considerably to reduce the packages being installed ... it contains
-```
-lask==2.2.2
-numpy==1.24.2
-openpyxl==3.1.5
-paho_mqtt==2.1.0
-pandas==2.2.3
-platformio==6.1.18https://github.com/kodell80305/dune-weaver-wled.git
-plotly==6.0.0
-Requests==2.32.3
-rpi_ws281x==5.0.0
-```
-at the moment I'm a little confused about where some of these dependancies came from (pipreq may not be accurate).
 
 ## Testing procedure and installation
 
