@@ -10,7 +10,7 @@ sudo python install_scripts/startService.py start
 ```
 That's it, you're done as far as the software is concerned.  Wait until the service has started and open a browser with the address of your Raspberry Pi.
 
-If you want to actually see the LEDs you'll need to hook up the data up to GPIO 18.
+If you want to actually see the LEDs you'll need to hook up the data from the LED to GPIO 18.
 
 ## If you're still here
 
