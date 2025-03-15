@@ -72,17 +72,10 @@ led_colors = [(0, 0, 255)] * config.LED_COUNT
 app = Flask(__name__, static_folder='static')
 
 
-# Route to serve the HTML file
-@app.route('/')
+
+
+@app.route('/', methods=["GET", "POST"])
 def index():
-    print("index")
-    return render_template('index.htm')
-
-
-
-
-@app.route('/settings', methods=["GET", "POST"])
-def settings():
     # Options for the select box
     options = ['RGB', 'RBG', 'GRB']
 
@@ -105,7 +98,7 @@ def settings():
     print(f"Options passed to template: {options}")
     print(f"Selected value passed to template: {selected_value}")
 
-    return render_template('settings.htm', data=settings_data, options=options, selected_value=selected_value)
+    return render_template('index.htm', data=settings_data, options=options, selected_value=selected_value)
 
 
 def set_color(rval, gval, bval):        #Set all leds to same color

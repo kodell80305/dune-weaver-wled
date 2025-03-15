@@ -2,8 +2,5 @@ dw_led_server/__pycache__/
 .vscode/
 __pycache__/
 .venv
-templates/
-static/
-.env
 backup_web/
 .requriements_installed
