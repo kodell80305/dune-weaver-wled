@@ -46,12 +46,29 @@ def copy_files():
 
 
 def display_none(line, key):
-    if f">{key}" in line:
-        line = line.replace(f">{key}", f" style=\"display: none;\">{key}")
-        print(f"    {line.lstrip()}", end="")
+    # Handle escaped double quotes explicitly
+    escaped_key = key.replace('\\"', '')  # Properly handle escaped quotes
+
+    # Check for matches in the line
+    if key in line or escaped_key in line:
+        print(f"Match found for key: {key} in line: {line.strip()}")
+
+        # Avoid adding duplicate attributes
+        if 'style="display: none;" hidden' not in line:
+            # Handle elements with id matching the key (e.g., <div id="Segments">)
+            if f'id="{key}"' in line or f'id="{escaped_key}"' in line:
+                print(f"Modifying line with id: {line.strip()}")
+                line = line.replace(f'id="{key}"', f'id="{key}" style="display: none;" hidden')
+                line = line.replace(f'id="{escaped_key}"', f'id="{escaped_key}" style="display: none;" hidden')
+            # Handle tab button content (e.g., <button>Segments</button>)
+            elif f">{key}" in line or f">{escaped_key}" in line:
+                print(f"Modifying line with content: {line.strip()}")
+                line = line.replace(f">{key}", f" style=\"display: none;\" hidden disabled>{key}")
+                line = line.replace(f">{escaped_key}", f" style=\"display: none;\" hidden disabled>{escaped_key}")
+
+        print(f"Modified line: {line.strip()}")
+
     return line
-
-
 
 def fix_url(line):
     url_mappings = [
@@ -77,6 +94,7 @@ def hide_button(line, button):
     """
     if button not in line:
         return line
+
 
     line = line.replace(button, f" hidden{button}")
     print(f"    {line.lstrip()}", end="")
@@ -106,7 +124,7 @@ def patch_index_html():
         ">Reboot WLED",
         ">Update WLED",
         ">Instance",
-        ">Reset segments"
+        ">Reset segments",
     ]
 
     buttons_to_hide_post = [
@@ -121,7 +139,12 @@ def patch_index_html():
                 line = hide_button(line, button)
             for button in buttons_to_hide_post:
                 line = hide_button_post(line, button)
-            outfile.write(line)
+
+            if "openTab(2)" not in line and "openTab(3)" not in line:
+                outfile.write(line)
+
+
+   
 
 def patch_settings_html():
     print("Patching settings.htm")
