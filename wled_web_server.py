@@ -272,6 +272,18 @@ def run_flask_app():
     #socketio.run(app)
     app.logger.setLevel(logging.INFO)  # Set the logging level to INFO or lower
     app.logger.info("This will be logged if the level is set correctly")
+
+    import time
+ 
+    handle_on(True)
+    set_color(255, 0, 0)
+    time.sleep(2)
+    set_color(0, 255, 0)
+    time.sleep(2)
+    set_color(0, 0, 255)
+
+
+
     app.run(host="0.0.0.0", port=80)
 
 
