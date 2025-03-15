@@ -11,15 +11,15 @@ def run_command(command):
 
 def check_submodule():
     if not os.path.exists("WLED/wled00"):
-        print("Submodule WLED not found. Initializing submodule...")
+        print("    Submodule WLED not found. Initializing submodule...")
         run_command("git submodule update --init")
         run_command("git submodule update")
     else:
-        print("Submodule WLED already populated.")
+        print("    Submodule WLED already populated.")
 
 def backup_directories(enable_backup):
     if not enable_backup:
-        print("Backup creation is disabled.")
+        print("    Backup creation is disabled.")
         return
 
     timestamp = datetime.now().strftime("web-%Y-%m%dT%H:%M")
@@ -32,15 +32,14 @@ def backup_directories(enable_backup):
         shutil.move("static", os.path.join(backup_dir, "static"))
 
 def copy_files():
-    print("Copying files index.scss, iro.js, rangetouch.js, common.js, 404.htm")
+    print("    Copying files index.scss, iro.js, rangetouch.js, common.js, 404.htm, settings.htm")
     files_to_copy = [
         ("WLED/wled00/data/index.css", "static/styles"),
         ("WLED/wled00/data/iro.js", "static/js"),
         ("WLED/wled00/data/rangetouch.js", "static/js"),
         ("WLED/wled00/data/common.js", "static/js"),
         ("WLED/wled00/data/404.htm", "templates"),
-        ("WLED/wled00/data/settings_leds.htm", "templates"),
-        ("WLED/wled00/data/settings.htm", "templates")
+        ("settings.htm", "templates")
     ]
     for src, dst in files_to_copy:
         run_command(f"cp {src} {dst}")
@@ -250,6 +249,8 @@ def patch_index_js():
 
     with open("static/js/index.js", "w") as outfile:
         for line in lines:
+            line = display_none(line, 'makeSeg()\"')
+
             if "var effects = eJson;" in line:  # Detect the line where effects are defined
                 outfile.write(line)
                 outfile.write(new_effects)  # Insert the new effects content
@@ -290,15 +291,15 @@ def main():
     check_submodule()
     backup_directories(args.backup)
     
-    print("Creating directories templates, static/styles, static/js")
+    print("    Creating directories templates, static/styles, static/js")
     os.makedirs("templates", exist_ok=True)
     os.makedirs("static/styles", exist_ok=True)
     os.makedirs("static/js", exist_ok=True)
     
-    print("Copying files from WLED submodule")
+    print("    Copying files from WLED submodule")
     copy_files()
     patch_index_html()
-    patch_settings_html()
+    #patch_settings_html()
     patch_index_js()
 
 if __name__ == "__main__":

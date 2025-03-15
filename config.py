@@ -19,8 +19,8 @@
 simulate = True
 #You'll need to configure the number of pixels and the type of strip you have.   Also if you want to have the first SEGMENT_0_START pixels be used for undertable
 #lighting, set SEGMENT_0_START.  Otherwise make it 0.  These pixels will always be white, but will respond to brightness/power on or off
-LED_COUNT = 200
-SEGMENT_0_START = 11
+LED_COUNT = 30
+SEGMENT_0_START = 0
 
 
   
