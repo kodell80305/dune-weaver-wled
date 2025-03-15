@@ -249,13 +249,12 @@ def patch_index_js():
 
     with open("static/js/index.js", "w") as outfile:
         for line in lines:
-            line = display_none(line, 'makeSeg()\"')
-
             if "var effects = eJson;" in line:  # Detect the line where effects are defined
                 outfile.write(line)
                 outfile.write(new_effects)  # Insert the new effects content
                 print(f"    new_effects.js content inserted after 'var effects = eJson;'")
             else:
+                #if "Add segment" not in line and "Reverse" not in line and "Mirror" not in line:
                 outfile.write(line)
 
     inforow_data = [
