@@ -7,42 +7,43 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
     </head>
     <body>
-        <button type="submit" id="b" onclick="window.location=getURL('/')">Back</button>
+        <script>
+            function goBack() {
+                window.history.back();
+            }
+        </script>
+
         <form id="form_s" name="Sf" method="post">
             <div class="toprow">
+                <button type="button" onclick="goBack()">Back</button>
                 <button type="submit">Save</button>
                 <hr>
             </div>
+    
             <label for="totalLeds">Total LEDs:</label>
-            <input type="text" id="totalLeds" name="totalLeds">
-
-
+            <input type="text" id="totalLeds" name="totalLeds" value="{{ data.totalLeds }}">
             <br>
-            <div id="dbar" style="display:inline-block;width:100px;height:10px;border-radius:20px"></div>
+            
+            <label for="my_select">Color Order:</label>
+            <select name="my_select" id="my_select">
+                {% for option in options %}
+                    <option value="{{ option }}" {% if option == selected_value %}selected{% endif %}>
+                        {{ option }}
+                    </option>
+                {% endfor %}
+            </select>
             <br>
-            <div id="color_order_mapping">
-                Color Order:<div id="com_entries"></div>
-                <select name="IT" onchange="UI()">
-                    <option value="0">RGB</option>
-                    <option value="1">RBG</option>
-                    <option value="2">GRB</option>
-                    <option value="3">GBR</option>
-                    <option value="4">BRG</option>
-                    <option value="5">BGR</option>
-                </select>
-            </div>
-            <br>
-            Default brightness: <input name="CA" type="number" class="m" min="0" max="255" required>
+            
+            <label for="CA">Default Brightness:</label>
+            <input name="CA" type="number" class="m" min="0" max="255" value="{{ data.brightness }}">
             (0-255)<br>
-            <br>
-            Brightness factor: <input name="BF" type="number" class="m" min="1" max="255" required>
-
-            <h3>Timed light</h3>
-            Default Duration: <input name="TL" type="number" class="m" min="1" max="255" required>
+     
+            <h3>Timed Light</h3>
+            <label for="TL">Default Duration:</label>
+            <input name="TL" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
             min<br>
-            Default Target brightness: <input name="TB" type="number" class="m" min="0" max="255" required>
-            <br>
         </form>
+
         <div id="toast"></div>
     </body>
 </html>

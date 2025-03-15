@@ -9,6 +9,13 @@ import requests
 import json
 
 
+# Default data to pass to the template
+settings_data = {
+    "totalLeds": "41",  # Default total LEDs
+    "colorOrder": "GRB",  # Default selected color order
+    "brightness": "41",  # Default brightness
+    "duration": "18"  # Default duration in minutes
+}
 
 state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
 
@@ -72,19 +79,34 @@ def index():
     return render_template('index.htm')
 
 
-@app.route('/settings')
+
+
+@app.route('/settings', methods=["GET", "POST"])
 def settings():
-    return render_template('settings.htm')
+    # Options for the select box
+    options = ['RGB', 'RBG', 'GRB']
 
-    
-@app.route('/settings/leds')
-def settings_leds():
-    return render_template('settings_leds.htm')
+    # Handle POST request to update the values
+    if request.method == 'POST':
+        settings_data['totalLeds'] = request.form.get('totalLeds', settings_data['totalLeds'])
+        settings_data['colorOrder'] = request.form.get('my_select', settings_data['colorOrder'])
+        settings_data['brightness'] = request.form.get('CA', settings_data['brightness'])
+        settings_data['duration'] = request.form.get('TL', settings_data['duration'])
 
-@app.route("/settings/s.js")
-def settings_s():
-    return render_template('settings.htm')
- 
+        # Update config_data and write to config.json
+        config_data["LED_COUNT"] = int(settings_data['totalLeds'])
+        config_data["LED_STRIP"] = settings_data['colorOrder']
+        write_json(config_file_path, config_data)
+
+        print(f"Updated settings: {settings_data}")
+
+    # Pass data and options to the template
+    selected_value = settings_data['colorOrder']  # Ensure selected_value matches colorOrder
+    print(f"Options passed to template: {options}")
+    print(f"Selected value passed to template: {selected_value}")
+
+    return render_template('settings.htm', data=settings_data, options=options, selected_value=selected_value)
+
 
 def set_color(rval, gval, bval):        #Set all leds to same color
     global state

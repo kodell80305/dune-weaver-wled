@@ -46,8 +46,7 @@ if not rpi_ws281x_available:
 else:
     from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
     from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
-    LED_COLOR=WS2811_STRIP_GBR
-
+    LED_COLOR=WS2811_STRIP_BRG
 
 LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
 # LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
