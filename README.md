@@ -23,7 +23,9 @@ This code is designed to run with the amazing [Dune Weaver](https://github.com/t
 
 The web pages are all directly from the WLED project.  I've included WLED as a submodule. Note that I have not tested this software using a virtual environment or using docker.  After cloning the repo, you should be able to run 
 
-```sudo python install_scripts/startService.py start```.  
+```
+sudo python install_scripts/startService.py start
+```.  
 
 This is supposed do the following (supposed to - needs more fresh install testing):
 
@@ -36,6 +38,14 @@ This is supposed do the following (supposed to - needs more fresh install testin
 The command can also be used to stop the service (or the normal systemctl commands can be used).   You should be able to change the "WLED Configuration" IP in the Dune Weaver setting menu to point to the IP address of the Pi.  For some reason it won't connect using "127.0.0.1" but I haven't investigated this.
 
 I may need to  modify this script to blacklist the snd_bcm2835 module and disable audio, but so far it hasn't seemed necessary.   If you want, you can install this and test it without any of the wiring/hardware changes.   The software will have no idea if anything is connected to GPIO 18.
+
+At any time
+```
+git pull
+sudo python install_scripts/startService.py start
+```
+will update the software to the latest version.
+
 
 ## Tests run so far
 This has only been tested on the Pi Zero 2w and the Pi 4 using the latest 64 bit Bookworm OS (Version 12), freshly installed and updated.   The startService.py program (may or may not) won't work correctly on other versions/operating systems, but everything it does can be done manually.   I'm doing testing for real time, latency, memory usage.  So far everything seems very good.  Very little real time is used.  I've only tested with the 12V led strips ws2815 and the ws2811.   With 80 leds,  the The Pi Zero 2w uses about 8% of it's memory (I used the additional LEDs as a separate segment for under table lighting).   This is enough for the ws2815 on the Ombonad table or the ws2811 on with the Dune Weaver Pro version.   I'll do some additional testing with 180 leds for the ws2815 on the Dune Weaver Pro.
