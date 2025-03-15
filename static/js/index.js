@@ -265,21 +265,6 @@ function loadBg() {
 	});
 }
 
-function loadSkinCSS(cId)
-{
-	if (!gId(cId))	// check if element exists
-	{
-		var h  = d.getElementsByTagName('head')[0];
-		var l  = d.createElement('link');
-		l.id   = cId;
-		l.rel  = 'stylesheet';
-		l.type = 'text/css';
-		l.href = getURL('/skin.css');
-		l.media = 'all';
-		h.appendChild(l);
-	}
-}
-
 function getURL(path) {
 	return (loc ? locproto + "//" + locip : "") + path;
 }
@@ -351,7 +336,6 @@ function onLoad()
 			setTimeout(()=>{loadFX(()=>{
 				loadPalettesData(()=>{
 					requestJson();// will load presets and create WS
-					if (cfg.comp.css) setTimeout(()=>{loadSkinCSS('skinCss')},50);
 				});
 			})},50);
 		});
@@ -775,35 +759,19 @@ function parseInfo(i) {
 
 function populateInfo(i)
 {
-	var cn="";
-	var pwr = i.leds.pwr;
-	var pwru = "Not calculated";
-	if (pwr > 1000) {pwr /= 1000; pwr = pwr.toFixed((pwr > 10) ? 0 : 1); pwru = pwr + " A";}
-	else if (pwr > 0) {pwr = 50 * Math.round(pwr/50); pwru = pwr + " mA";}
-	var urows="";
-	if (i.u) {
-		for (const [k, val] of Object.entries(i.u)) {
-			if (val[1])
-				urows += inforow(k,val[0],val[1]);
-			else
-				urows += inforow(k,val);
-		}
-	}
-	var vcn = "Kuuhaku";
-	if (i.cn) vcn = i.cn;
 
-	cn += `v${i.ver} "${vcn}"<br><br><table>
-${urows}
-${urows===""?'':'<tr><td colspan=2><hr style="height:1px;border-width:0;color:gray;background-color:gray"></td></tr>'}
-${i.opt&0x100?inforow("Debug","<button class=\"btn btn-xs\" onclick=\"requestJson({'debug':"+(i.opt&0x0080?"false":"true")+"});\"><i class=\"icons "+(i.opt&0x0080?"on":"off")+"\">&#xe08f;</i></button>"):''}
-${inforow("Build","Dune Weaver WLED")}${inforow(" "," ")}${inforow("Not Official WLED","so don't blame them")}${inforow(" "," ")}${inforow("But do support them","it's a great resource")}${i.psram?inforow("Free PSRAM",(i.psram/1024).toFixed(1)," kB"):""}
-${inforow(" "," ")}${inforow(" "," ")}${inforow(" "," ")}${inforow(" "," ")}${inforow(" "," ")}${inforow(" "," ")}${inforow(" "," ")}</table>`;
+
+	cn = `Dune Weaver WLED
+	<br>
+	<br>
+	See website for details<br>
+
+	Thanks to all the folks for their hard work!.    This code is based on the <a href="https://kno.wled.ge/">WLED project</a>vvvv mmm
+	<br><br>`;
+
+
 	gId('kv').innerHTML = cn;
-	//  update all sliders in Info
-	d.querySelectorAll('#kv .sliderdisplay').forEach((sd,i) => {
-		let s = sd.previousElementSibling;
-		if (s) updateTrail(s);
-	});
+
 }
 
 function populateSegments(s)
@@ -832,8 +800,8 @@ function populateSegments(s)
 
 		let segp = `<div id="segp${i}" class="sbs">`+
 						`<i class="icons slider-icon pwr ${inst.on ? "act":""}" id="seg${i}pwr" title="Power" onclick="setSegPwr(${i})">&#xe08f;</i>`+
-						`<div class="sliderwrap il" title="Opacity/Brightness">`+
-							`<input id="seg${i}bri" class="noslide" onchange="setSegBri(${i})" oninput="updateTrail(this)" max="255" min="1" type="range" value="${inst.bri}" />`+
+						`<div class="sliderwrap il" title="Opacity/Brightness" hidden>`+
+							`<input id="seg${i}bri" class="noslide" onchange="setSegBri(${i})" oninput="updateTrail(this)" max="255" min="1" type="range" hidden value="${inst.bri}" />`+
 							`<div class="sliderdisplay"></div>`+
 						`</div>`+
 					`</div>`;
@@ -842,14 +810,9 @@ function populateSegments(s)
 		let staY = inst.startY;
 		let stoY = inst.stopY;
 		let isMSeg = isM && staX<mw*mh; // 2D matrix segment
-		let rvXck = `<label class="check revchkl">Reverse ${isM?'':'direction'}<input type="checkbox" id="seg${i}rev" onchange="setRev(${i})" ${inst.rev?"checked":""}><span class="checkmark"></span></label>`;
-		let miXck = `<label class="check revchkl">Mirror<input type="checkbox" id="seg${i}mi" onchange="setMi(${i})" ${inst.mi?"checked":""}><span class="checkmark"></span></label>`;
-		let rvYck = "", miYck ="";
+
 		let smpl = simplifiedUI ? 'hide' : '';
-		if (isMSeg) {
-			rvYck = `<label class="check revchkl">Reverse<input type="checkbox" id="seg${i}rY" onchange="setRevY(${i})" ${inst.rY?"checked":""}><span class="checkmark"></span></label>`;
-			miYck = `<label class="check revchkl">Mirror<input type="checkbox" id="seg${i}mY" onchange="setMiY(${i})" ${inst.mY?"checked":""}><span class="checkmark"></span></label>`;
-		}
+
 		let map2D = `<div id="seg${i}map2D" data-map="map2D" class="lbl-s hide">Expand 1D FX<br>`+
 						`<div class="sel-p"><select class="sel-p" id="seg${i}m12" onchange="setM12(${i})">`+
 							`<option value="0" ${inst.m12==0?' selected':''}>Pixels</option>`+
@@ -874,7 +837,7 @@ function populateSegments(s)
 				`</label>`+
 				`<div class="segname ${smpl}" onclick="selSegEx(${i})">`+
 					`<i class="icons e-icon frz" id="seg${i}frz" title="(un)Freeze" onclick="event.preventDefault();tglFreeze(${i});">&#x${inst.frz ? (li.live && li.liveseg==i?'e410':'e0e8') : 'e325'};</i>`+
-					(inst.n ? inst.n : "Segment "+i) +
+					(i == 0 ? "Table LEDs" : "Undertable light") +
 					`<div class="pop hide" onclick="event.preventDefault();event.stopPropagation();">`+
 						`<i class="icons g-icon" title="Set group" style="color:${cG};" onclick="this.nextElementSibling.classList.toggle('hide');">&#x278${String.fromCharCode(inst.set+"A".charCodeAt(0))};</i>`+
 						`<div class="pop-c hide"><span style="color:var(--c-f);" onclick="setGrp(${i},0);">&#x278A;</span><span style="color:var(--c-r);" onclick="setGrp(${i},1);">&#x278B;</span><span style="color:var(--c-g);" onclick="setGrp(${i},2);">&#x278C;</span><span style="color:var(--c-l);" onclick="setGrp(${i},3);">&#x278D;</span></div>`+
@@ -889,43 +852,24 @@ function populateSegments(s)
 					`<tr>`+
 						`<td>${isMSeg?'Start X':'Start LED'}</td>`+
 						`<td>${isMSeg?(cfg.comp.seglen?"Width":"Stop X"):(cfg.comp.seglen?"LED count":"Stop LED")}</td>`+
-						`<td>${isMSeg?'':'Offset'}</td>`+
 					`</tr>`+
 					`<tr>`+
 						`<td><input class="segn" id="seg${i}s" type="number" min="0" max="${(isMSeg?mw:ledCount)-1}" value="${staX}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
 						`<td><input class="segn" id="seg${i}e" type="number" min="0" max="${(isMSeg?mw:ledCount)}" value="${stoX-(cfg.comp.seglen?staX:0)}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
-						`<td ${isMSeg?'style="text-align:revert;"':''}>${isMSeg?miXck+'<br>'+rvXck:''}<input class="segn ${isMSeg?'hide':''}" id="seg${i}of" type="number" value="${inst.of}" oninput="updateLen(${i})"></td>`+
+					
 					`</tr>`+
 					(isMSeg ? '<tr><td>Start Y</td><td>'+(cfg.comp.seglen?'Height':'Stop Y')+'</td><td></td></tr>'+
 					'<tr>'+
 						'<td><input class="segn" id="seg'+i+'sY" type="number" min="0" max="'+(mh-1)+'" value="'+staY+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
 						'<td><input class="segn" id="seg'+i+'eY" type="number" min="0" max="'+mh+'" value="'+(stoY-(cfg.comp.seglen?staY:0))+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
-						'<td style="text-align:revert;">'+miYck+'<br>'+rvYck+'</td>'+
+
 					'</tr>' : '') +
-					`<tr>`+
-						`<td>Grouping</td>`+
-						`<td>Spacing</td>`+
-						`<td></td>`+
-					`</tr>`+
-					`<tr>`+
-						`<td><input class="segn" id="seg${i}grp" type="number" min="1" max="255" value="${inst.grp}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
-						`<td><input class="segn" id="seg${i}spc" type="number" min="0" max="255" value="${inst.spc}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
-						`<td><button class="btn btn-xs" title="Update" onclick="setSeg(${i})"><i class="icons btn-icon" id="segc${i}">&#xe390;</i></button></td>`+
-					`</tr>`+
 					`</table>`+
 					`<div class="h bp" id="seg${i}len"></div>`+
-					(!isMSeg ? rvXck : '') +
-					(isMSeg&&stoY-staY>1&&stoX-staX>1 ? map2D : '') +
-					(s.AudioReactive && s.AudioReactive.on ? "" : sndSim) +
-					`<label class="check revchkl" id="seg${i}lbtm">`+
-						(isMSeg?'Transpose':'Mirror effect') + (isMSeg ?
-						'<input type="checkbox" id="seg'+i+'tp" onchange="setTp('+i+')" '+(inst.tp?"checked":"")+'>':
-						'<input type="checkbox" id="seg'+i+'mi" onchange="setMi('+i+')" '+(inst.mi?"checked":"")+'>') +
-						`<span class="checkmark"></span>`+
-					`</label>`+
+
 					`<div class="del">`+
-						`<button class="btn btn-xs" id="segr${i}" title="Repeat until end" onclick="rptSeg(${i})"><i class="icons btn-icon">&#xe22d;</i></button>`+
-						`<button class="btn btn-xs" id="segd${i}" title="Delete" onclick="delSeg(${i})"><i class="icons btn-icon">&#xe037;</i></button>`+
+						`<button class="btn btn-xs" id="segr${i}" title="Repeat until end" onclick="rptSeg(${i})" hidden><i class="icons btn-icon">&#xe22d;</i></button>`+
+					
 					`</div>`+
 				`</div>`+
 				(cfg.comp.segpwr ? '' : segp) +
@@ -3009,7 +2953,6 @@ function filterFocus(e) {
 	}
 	if (e.type === "blur") {
 		setTimeout(() => {
-			if (e.target === document.activeElement && document.hasFocus()) return;
 			// do not hide if filter is active
 			if (!c) {
 				// compute sticky top

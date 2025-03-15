@@ -157,7 +157,6 @@
 		<div id="fx">
 			<p class="labels hd" id="modeLabel">Effect mode</p>
 			<div class="staytop fnd" id="fxFind" onmousedown="preventBlur(event);">
-				<input type="text" placeholder="Search" oninput="search(this,'fxlist')" onfocus="filterFocus(event);search(this,'fxlist');" onblur="filterFocus(event);">
 				<i class="icons clear-icon" onclick="clean(this);">&#xe38f;</i>
 				<i class="icons search-icon" style="cursor:pointer;">&#xe0a1;</i>
 				<div id="filters" class="filter fade">
@@ -258,35 +257,17 @@
 	</div>
 
 	<div id="Segments" class="tabcontent">
-		<p class="labels hd" id="segLabel">Segments</p>
+		<p class="labels hd" id="segLabel">Configuration</p>
 
 		<form id="form_s" name="Sf" method="post">
       
     
 			<br>
             <label for="totalLeds">Total LEDs:</label>
-            <input type="text" id="totalLeds" name="totalLeds" value="{{ data.totalLeds }}">
+            <input t type="number" class="m" min="0" max="255"" name="totalLeds" value="{{ data.totalLeds }}">
             <br>
             <br>
-            <label for="my_select">Color Order:</label>
-            <select name="my_select" id="my_select">
-                {% for option in options %}
-                    <option value="{{ option }}" {% if option == selected_value %}selected{% endif %}>
-                        {{ option }}
-                    </option>
-                {% endfor %}
-            </select>
-            <br>
-            
-            <label for="CA">Default Brightness:</label>
-            <input name="CA" type="number" class="m" min="0" max="255" value="{{ data.brightness }}">
-            (0-255)
-			<br>
-			<br>
-            <label for="TL">Default timer:</label>
-            <input name="TL" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
-            min<br>
-
+ 
 		<br>
 		<div id="segcont">
 			Loading...
@@ -294,6 +275,26 @@
 		<div id="segutil" class="staybot" hidden style="display:none">
 	
 		</div>
+		<label for="my_select">Color Order:</label>
+		<select name="my_select" id="my_select">
+			{% for option in options %}
+				<option value="{{ option }}" {% if option == selected_value %}selected{% endif %}>
+					{{ option }}
+				</option>
+			{% endfor %}
+		</select>
+		<br>
+		<br>
+		
+		<label for="CA">Default Brightness:</label>
+		<input name="CA" type="number" class="m" min="0" max="255" value="{{ data.brightness }}">
+		(0-255)
+		<br>
+		<br>
+		<label for="TL">Default timer:</label>
+		<input name="TL" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
+		min<br>
+
 
 		<p>Transition: <input id="tt" type="number" min="0" max="65.5" step="0.1" value="0.7" onchange="parseFloat(this.value)===0?gId('bsp').classList.add('hide'):gId('bsp').classList.remove('hide');">&nbsp;s</p>
 		<p id="bsp">Blend:
@@ -329,16 +330,14 @@
 	<div id="Presets" class="tabcontent">
 		<div id="pql">
 		</div>
-		<p class="labels hd" hidden>Presets</p>
+		<p class="labels hd" hidden style="display:none;">Pres</p>
 		<div class="staytop fnd" id="psFind">
-			<input type="text" placeholder="Search" oninput="search(this,'pcont')" onfocus="search(this,'pcont')" />
-			<i class="icons clear-icon" onclick="clean(this);">&#xe38f;</i>
-			<i class="icons search-icon">&#xe0a1;</i>
+
 		</div>
-		<div id="pcont" class="list">
+		<div id="pcont" class="list" hidden style="display:none;">
 			<span onclick="loadPresets()">Loading...</span>
 		</div>
-		<div id="putil" class="staybot">
+		<div id="putil" class="staybot" hidden style="display: none;"></div>
 		</div>
 	</div>
 </div>
@@ -356,8 +355,9 @@
 <div id="info" class="modal">
 	<button class="btn btn-xs close" onclick="toggleInfo()"><i class="icons rot45">&#xe18a;</i></button>
 	<div id="imgw">
-		<img class="wi" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAFCAYAAAC5Fuf5AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABbSURBVChTlY9bDoAwDMNW7n9nwCipytQN4Z8tbrTHmDmF4oPzyldwRqp1SSdnV/NuZuzqerAByxXznBw3igkeFEfXyUuhK/yFM0CxJfyqXZEOc6/Sr9/bf7uIC5Nwd7orMvAPAAAAAElFTkSuQmCC" />
-	</div>
+		<img class="wi" alt="" src="data:image/png;base64,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" >
+
+		</div>
 	<div id="kv">Loading...</div><br>
 	<div>
 		<button class="btn ibtn" onclick="requestJson()">Refresh</button>
