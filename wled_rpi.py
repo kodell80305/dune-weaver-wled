@@ -165,15 +165,6 @@ effects_list = [
       }
     },
     {
-        "ID": "3",
-        "Effect": "Wipe",
-        "description": "Switches between primary and secondary, switching LEDs one by one, start to end",
-        "parameters": {
-            "color": "#0000FF",  #speed, intensity
-            "brightness": 128 
-      }
-    },
-    {
         'ID': '13',
         "func": Theater,
         "Effect": "Theater",
