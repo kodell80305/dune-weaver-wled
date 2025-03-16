@@ -5,6 +5,7 @@ from queue import Queue
 import config
 import importlib
 import json
+import random
 
 # Check if rpi_ws281x is available
 rpi_ws281x_available = importlib.util.find_spec("rpi_ws281x") is not None
@@ -152,12 +153,138 @@ def TheaterRainbow(strip, wait_ms=50):
         if checkCancel():
             return
 
+def Loading(strip, wait_ms=50, iterations=10):
+    """
+    Moves a sawtooth pattern along the strip.
+    """
+    num_pixels = strip.numPixels()
+    for _ in range(iterations):
+        for i in range(num_pixels):
+            # Calculate the brightness for each pixel in the sawtooth pattern
+            brightness = int((i / num_pixels) * 255)
+            strip.setPixelColor(i, Color(brightness, brightness, brightness))
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
+        if checkCancel():
+            return
+
+def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=50, iterations=100):
+    """
+    Simulates bouncing balls with gravity.
+    """
+    num_pixels = strip.numPixels()
+    positions = [0.0] * num_balls
+    velocities = [0.0] * num_balls
+    colors = [wheel(int(i * 256 / num_balls)) for i in range(num_balls)]
+
+    for _ in range(iterations):
+        for i in range(num_balls):
+            velocities[i] += gravity / 1000.0  # Simulate gravity
+            positions[i] += velocities[i]
+
+            if positions[i] >= num_pixels - 1:  # Bounce off the end
+                positions[i] = num_pixels - 1
+                velocities[i] = -velocities[i] * 0.9  # Lose some energy on bounce
+
+        if not overlay:
+            for j in range(num_pixels):
+                strip.setPixelColor(j, Color(0, 0, 0))  # Clear the strip
+
+        for i in range(num_balls):
+            strip.setPixelColor(int(positions[i]), colors[i])
+
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
+
+        if checkCancel():
+            return
+
+def Fairy(strip, speed=50, num_flashers=10, iterations=100):
+    """
+    Simulates twinkling lights inspired by Christmas lights.
+    """
+    num_pixels = strip.numPixels()
+    flashers = [random.randint(0, num_pixels - 1) for _ in range(num_flashers)]
+    colors = [wheel(random.randint(0, 255)) for _ in range(num_flashers)]
+
+    for _ in range(iterations):
+        for i in range(num_pixels):
+            strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
+
+        for i, flasher in enumerate(flashers):
+            brightness = random.randint(50, 255)  # Random brightness for twinkle
+            r, g, b = colors[i]
+            strip.setPixelColor(flasher, Color(r * brightness // 255, g * brightness // 255, b * brightness // 255))
+
+        strip.show()
+        time.sleep(speed / 1000.0)
+
+        if checkCancel():
+            return
+
+def Glitter(strip, speed=50, intensity=128, overlay=False, iterations=100):
+    """
+    Rainbow effect with white sparkles.
+    """
+    num_pixels = strip.numPixels()
+    for _ in range(iterations):
+        for i in range(num_pixels):
+            if not overlay:
+                strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
+
+            # Add rainbow colors
+            strip.setPixelColor(i, wheel((i * 256 // num_pixels) & 255))
+
+            # Add white sparkles randomly
+            if random.randint(0, 255) < intensity:
+                strip.setPixelColor(i, Color(255, 255, 255))
+
+        strip.show()
+        time.sleep(speed / 1000.0)
+
+        if checkCancel():
+            return
+
+def HalloweenEyes(strip, duration=5000, fade_time=500, overlay=False):
+    """
+    Simulates a pair of blinking eyes at random intervals along the strip.
+    """
+    num_pixels = strip.numPixels()
+    start_time = time.time()
+    eye_color = Color(255, 0, 0)  # Red eyes
+    bg_color = Color(0, 0, 0)  # Background color
+
+    while (time.time() - start_time) * 1000 < duration:
+        # Randomly select a position for the eyes
+        eye_position = random.randint(0, num_pixels - 2)
+        strip.setPixelColor(eye_position, eye_color)
+        strip.setPixelColor(eye_position + 1, eye_color)
+
+        strip.show()
+        time.sleep(fade_time / 1000.0)
+
+        # Fade out the eyes
+        for i in range(fade_time, 0, -50):
+            brightness = i / fade_time
+            strip.setPixelColor(eye_position, Color(int(255 * brightness), 0, 0))
+            strip.setPixelColor(eye_position + 1, Color(int(255 * brightness), 0, 0))
+            strip.show()
+            time.sleep(50 / 1000.0)
+
+        # Clear the eyes
+        strip.setPixelColor(eye_position, bg_color)
+        strip.setPixelColor(eye_position + 1, bg_color)
+        strip.show()
+
+        if checkCancel():
+            return
+
 effects_list = [
     {
         # Static color effect - should always be first - defines the default
         # state of the LEDs
         "ID": "0",
-        "Effect": "Solid",
+        "Effect": 'Solid',
         "description": "Solid color lighting effect",
         "parameters": {
             "color": "#0000FF",
@@ -167,25 +294,41 @@ effects_list = [
     {
         'ID': '13',
         "func": Theater,
-        "Effect": "Theater",
+        "Effect": 'Theater',
         "description": "Pattern of one lit and two unlit LEDs running",
         "parameters": {                #speed, gap size
             "wait_ms": 20,
         }
     },
     {
-        'ID': '14',
-        "func": TheaterRainbow,
-        "Effect": "Theater Rainbow",
-        "description": "Same as Theater but uses colors of the rainbow",
-        "parameters": {
-            "wait_ms": 20,         #speed, gap size
+        'ID': '47',
+        "func": Loading,
+        "Effect": 'Loading',
+        "description": "Moves a sawtooth pattern along the strip",
+        "parameters": {                #speed, gap size
+            "wait_ms": 20,
+            "iterations" : 10
+        
         }
     },
     {
+        'ID': '14',
+        "func": BouncingBalls,
+        "Effect": 'Bouncing Balls',
+        "description": "Bouncing ball effect",
+        "parameters": {
+            "wait_ms": 20,         #speed, gap size
+            'gravity': 9.8,
+            'num_balls': 3,
+            'overlay': False,
+            'wait_ms': 50,
+            'iterations': 100
+        }
+       },
+    {
         'ID': '9',
         "func": Rainbow,
-        "Effect": "Rainbow",
+        "Effect": 'Rainbow',
         "description": "Displays rainbow colors along the whole strip",
         "parameters": {
             "speed": 50,
@@ -193,15 +336,83 @@ effects_list = [
         }
     },
     {
+        'ID': '14',
         "func": TheaterRainbow,
-        "Effect": "Theater Rainbow",
+        "Effect": 'Theater Rainbow',
         "description": "Same as Theater but uses colors of the rainbow",
         "parameters" : {  #speed, gap size
             "wait_ms": 50,      
             "intensity": 128
         }
+    },
+    {
+        'ID': '91',
+        'func': BouncingBalls,
+        'Effect': 'Bouncing Balls',
+        'description': 'Simulates bouncing balls with gravity',
+        'parameters': {
+            'gravity': 9.8,
+            'num_balls': 3,
+            'overlay': False,
+            'wait_ms': 50,
+            'iterations': 100
+        }
+    },
+    {
+        'ID': '49',
+        'func': Fairy,
+        'Effect': 'Fairy',
+        'description': 'Simulates twinkling lights inspired by Christmas lights',
+        'parameters': {
+            'speed': 50,
+            'num_flashers': 10,
+            'iterations': 100
+        }
+    },
+    {
+        'ID': '87',
+        'func': Glitter,
+        'Effect': 'Glitter',
+        'description': 'Rainbow with white sparkles',
+        'parameters': {
+            'speed': 50,
+            'intensity': 128,
+            'overlay': False,
+            'iterations': 100
+        }
+    },
+    {
+        'ID': '82',
+        'func': HalloweenEyes,
+        'Effect': 'Halloween Eyes',
+        'description': 'One pair of blinking eyes at random intervals along the strip',
+        'parameters': {
+            'duration': 5000,
+            'fade_time': 500,
+            'overlay': False
+        }
     }
 ]
+
+def get_effects_js():
+    """
+    Generates a JavaScript string for the effects list in the format:
+    var effects = [
+        ['0', "Solid"],
+        ['9', "Rainbow"],
+        ['14', "Theater Rainbow"],
+    ];
+    """
+   
+  
+    effects_js = "var effects = [\n"
+    for effect in effects_list:
+        effects_js += f"    [\'{effect['ID']}\', \"{effect['Effect']}\"],\n"
+    effects_js += "];"
+
+    return effects_js
+
+
 
 #For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
 #a command like setting the led brightness, then we'll restart the pattern.   Any other command
@@ -296,7 +507,7 @@ def run_rpi_app():
 
     except Exception as e: 
         all_off()
-        
+
 
 
 

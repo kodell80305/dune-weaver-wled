@@ -759,7 +759,7 @@ function parseInfo(i) {
 
 function populateInfo(i)
 {
-
+	return;
 
 	cn = `Dune Weaver WLED
 	<br>
@@ -854,14 +854,14 @@ function populateSegments(s)
 						`<td>${isMSeg?(cfg.comp.seglen?"Width":"Stop X"):(cfg.comp.seglen?"LED count":"Stop LED")}</td>`+
 					`</tr>`+
 					`<tr>`+
-						`<td><input class="segn" id="seg${i}s" type="number" min="0" max="${(isMSeg?mw:ledCount)-1}" value="${staX}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
-						`<td><input class="segn" id="seg${i}e" type="number" min="0" max="${(isMSeg?mw:ledCount)}" value="${stoX-(cfg.comp.seglen?staX:0)}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
+						`<td><input class="segn" id="seg${i}s" type="number" min="0" max="${(isMSeg?mw:ledCount)-1}" value="${configData[i][1]}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
+						`<td><input class="segn" id="seg${i}e" type="number" min="0" max="${(isMSeg?mw:ledCount)}" value="${configData[i+1][1]}" oninput="updateLen(${i})" onkeydown="segEnter(${i})"></td>`+
 					
 					`</tr>`+
 					(isMSeg ? '<tr><td>Start Y</td><td>'+(cfg.comp.seglen?'Height':'Stop Y')+'</td><td></td></tr>'+
 					'<tr>'+
-						'<td><input class="segn" id="seg'+i+'sY" type="number" min="0" max="'+(mh-1)+'" value="'+staY+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
-						'<td><input class="segn" id="seg'+i+'eY" type="number" min="0" max="'+mh+'" value="'+(stoY-(cfg.comp.seglen?staY:0))+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
+						'<td><input class="segn" id="seg'+i+'sY" type="number" min="0" max="'+(mh-1)+'" value="'+configData[i+2][1]+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
+						'<td><input class="segn" id="seg'+i+'eY" type="number" min="0" max="'+mh+'" value="'+configData[i+3][1]+'" oninput="updateLen('+i+')" onkeydown="segEnter('+i+')"></td>'+
 
 					'</tr>' : '') +
 					`</table>`+
@@ -909,13 +909,6 @@ function populateSegments(s)
 
 function populateEffects()
 {
-	var effects = eJson;
-    var effects = [
-        ['0', "Solid"],
-        ['9', "Rainbow"],
-        ['13', "Theater"],
-        ['14', "Theater Rainbow"],
-    ];
 	var html = "";
 
 	effects.shift(); // temporary remove solid
@@ -958,6 +951,27 @@ function populateEffects()
 	}
 
 	gId('fxlist').innerHTML=html;
+}
+
+function populateEffects2() {
+    var html = "";
+
+
+    for (let ef of effects) {
+        let id = ef[0];
+        let name = ef[1];
+        html += `<div class="lstI" data-id="${id}" onclick="setFX(${id})">
+                    <label class="radio schkl">
+                        <input type="radio" name="fx" value="${id}">
+                        <span class="radiomark"></span>
+                        <div class="lstIcontent">
+                            <span class="lstIname">${name}</span>
+                        </div>
+                    </label>
+                </div>`;
+    }
+
+    gId('fxlist').innerHTML = html;
 }
 
 function populatePalettes()

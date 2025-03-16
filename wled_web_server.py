@@ -1,4 +1,5 @@
 from flask import Flask, send_from_directory, request, jsonify, render_template
+
 import logging
 
 import os
@@ -9,13 +10,8 @@ import requests
 import json
 
 
-# Default data to pass to the template
-settings_data = {
-    "totalLeds": "41",  # Default total LEDs
-    "colorOrder": "GRB",  # Default selected color order
-    "brightness": "41",  # Default brightness
-    "duration": "18"  # Default duration in minutes
-}
+
+    
 
 state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
 
@@ -65,7 +61,7 @@ state = json.loads(si_data)
 #We'll only ever care about one segment
 state['state']['seg'][0]['len'] = config.LED_COUNT
 
-from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect
+from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect,  get_effects_js
 
 led_colors = [(0, 0, 255)] * config.LED_COUNT  
 
@@ -77,28 +73,38 @@ app = Flask(__name__, static_folder='static')
 @app.route('/', methods=["GET", "POST"])
 def index():
     # Options for the select box
-    options = ['RGB', 'RBG', 'GRB']
+
+    options =  ['WS2811_STRIP_RGB', 'WS2811_STRIP_RBG', 'WS2811_STRIP_GRB', 'WS2811_STRIP_GBR', 'WS2811_STRIP_BRG', 'WS2811_STRIP_BGR']
+    config_data = read_json(config_file_path)
+
+    
+    config_data['effect'] = get_effects_js()
+ 
+
+   
 
     # Handle POST request to update the values
     if request.method == 'POST':
-        settings_data['totalLeds'] = request.form.get('totalLeds', settings_data['totalLeds'])
-        settings_data['colorOrder'] = request.form.get('my_select', settings_data['colorOrder'])
-        settings_data['brightness'] = request.form.get('CA', settings_data['brightness'])
-        settings_data['duration'] = request.form.get('TL', settings_data['duration'])
-
-        # Update config_data and write to config.json
-        config_data["LED_COUNT"] = int(settings_data['totalLeds'])
-        config_data["LED_STRIP"] = settings_data['colorOrder']
-        write_json(config_file_path, config_data)
-
-        print(f"Updated settings: {settings_data}")
+        config_data['totalLeds'] = request.form.get('totalLeds', config_data['totalLeds'])
+        config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
+        config_data['brightness'] = request.form.get('CA', config_data['brightness'])
+        config_data['duration'] = request.form.get('TL', config_data['duration'])
+        config_data['seg0_start'] = request.form.get('seg0_start', config_data['seg0_start']) 
+        config_data['seg0_len'] = request.form.get('seg0_len', config_data['seg0_len'])
+        config_data['seg1_start'] = request.form.get('seg1_start', config_data['seg1_start'])
+        config_data['seg1_len'] = request.form.get('seg1_len', config_data['seg1_len'])
+        config_data['timer'] = request.form.get('timer', config_data['timer'])
+        config_data['effect'] = get_effects_js();
+        print(f"Updated settings: {config_data}")
+        breakpoint()
 
     # Pass data and options to the template
-    selected_value = settings_data['colorOrder']  # Ensure selected_value matches colorOrder
+    selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
     print(f"Options passed to template: {options}")
     print(f"Selected value passed to template: {selected_value}")
 
-    return render_template('index.htm', data=settings_data, options=options, selected_value=selected_value)
+ 
+    return render_template('index.htm', data=config_data, options=options, selected_value=selected_value)
 
 
 def set_color(rval, gval, bval):        #Set all leds to same color
