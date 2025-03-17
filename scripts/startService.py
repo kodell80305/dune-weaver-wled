@@ -113,7 +113,6 @@ def create_service():
 
 def start_service():
     install_requirements()
-    check_and_run_build_web()
     create_service()
     os.system('systemctl start dune-weaver-wled.service')
     print("Systemd service for Dune Weaver WLED Application started.")

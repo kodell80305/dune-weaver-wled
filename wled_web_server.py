@@ -198,9 +198,9 @@ def parse_state():
     try:
         print("request", request)
 
-        #No json data - this is just an info request
-        if(not request.data):
-            return(jsonify(state))
+        # No JSON data - this is just an info request
+        if not request.data:
+            return jsonify(state)
 
         data = request.get_json()
         
@@ -212,30 +212,31 @@ def parse_state():
             "message": "JSON received successfully",
             "received_data": data
         }
-        #print("data", data)
+        # print("data", data)
 
-        
-        for key, value in data.items() :
+        for key, value in data.items():
             match key:
                 case 'on':
                     handle_on(value)
                 case 'bri':
                     handle_bri(data['bri'])
-                case 'seg':       #this sets color, but probably other things I'm not handling
-                    if(isinstance(value, dict)):
-                        if('col' in value):
+                case 'seg':  # This sets color, but probably other things I'm not handling
+                    if isinstance(value, dict):
+                        if 'col' in value:
                             led = value['col']
-                            set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
-                        if('fx' in value):
+                            set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
+                        if 'fx' in value:
                             print("data", data)
                             handle_effect(value['fx'])
+                    elif isinstance(value, list):
+                        for segment in value:
+                            if isinstance(segment, dict) and 'col' in segment:
+                                led = segment['col']
+                                set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
+                            if isinstance(segment, dict) and 'fx' in segment:
+                                handle_effect(segment['fx'])
                     else:
-                        led = val['col']
-
-                        if isinstance(led[0], list):
-                            set_color(int(led[0][0]),int(led[0][1]), int(led[0][2]))
-                        else:
-                            set_color(int(led[0]),int(led[1]), int(led[2]))
+                        print("Unexpected format for 'seg':", value)
 
                     response = state
                 case 'effect':
@@ -245,7 +246,7 @@ def parse_state():
                 case 'v':
                     response = state
                 case 'time':
-                    response = state        #should we do anything with this?
+                    response = state  # Should we do anything with this?
                 case _:
                     print("no match", key)
 

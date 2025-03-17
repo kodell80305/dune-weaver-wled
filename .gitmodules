@@ -1,3 +1,7 @@
 [submodule "WLED"]
 	path = WLED
 	url = https://github.com/wled/WLED.git
+[submodule "dune-weaver"]
+	path = dune-weaver
+	url = https://github.com/tuanchris/dune-weaver
+	branch = dlc32
