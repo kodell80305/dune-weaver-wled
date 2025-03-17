@@ -109,7 +109,11 @@ git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
 sudo python install_scripts/startService.py start
 ```
-
+I created test case for all the current Dune Weaver API calls.   You can run the command
+```
+python test_led_controller.py
+```
+All the test cases pass, where pass they all do something.   I need to run these against a real controller and compare the behavior.   There are definately things that don't act quite the same.    The UI still has some issues ... my javascript and html is about 30 years out of date.   
 
 
 
