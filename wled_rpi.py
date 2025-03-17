@@ -158,15 +158,25 @@ def Loading(strip, wait_ms=50, iterations=10):
     Moves a sawtooth pattern along the strip.
     """
     num_pixels = strip.numPixels()
-    for _ in range(iterations):
+    pattern_length = 10  # Length of the sawtooth pattern
+
+    for j in range(iterations):
         for i in range(num_pixels):
-            # Calculate the brightness for each pixel in the sawtooth pattern
-            brightness = int((i / num_pixels) * 255)
-            strip.setPixelColor(i, Color(brightness, brightness, brightness))
-        strip.show()
-        time.sleep(wait_ms / 1000.0)
-        if checkCancel():
-            return
+            # Clear the strip
+            strip.setPixelColor(i, Color(0, 0, 0))
+
+        for i in range(num_pixels):
+            # Calculate brightness for each pixel in the sawtooth pattern
+            for k in range(pattern_length):
+                if i + k < num_pixels:
+                    brightness = max(0, 255 - (255 * k // pattern_length))
+                    strip.setPixelColor(i + k, Color(brightness, 0, 0))
+
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+
+            if checkCancel():
+                return
 
 def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=50, iterations=100):
     """
@@ -205,7 +215,7 @@ def Fairy(strip, speed=50, num_flashers=10, iterations=100):
     """
     num_pixels = strip.numPixels()
     flashers = [random.randint(0, num_pixels - 1) for _ in range(num_flashers)]
-    colors = [wheel(random.randint(0, 255)) for _ in range(num_flashers)]
+    colors = [random.randint(0, 255) for _ in range(num_flashers)]  # Store color positions for the wheel
 
     for _ in range(iterations):
         for i in range(num_pixels):
@@ -213,7 +223,10 @@ def Fairy(strip, speed=50, num_flashers=10, iterations=100):
 
         for i, flasher in enumerate(flashers):
             brightness = random.randint(50, 255)  # Random brightness for twinkle
-            r, g, b = colors[i]
+            color = wheel(colors[i])  # Get the color from the wheel
+            r = (color >> 16) & 0xFF
+            g = (color >> 8) & 0xFF
+            b = color & 0xFF
             strip.setPixelColor(flasher, Color(r * brightness // 255, g * brightness // 255, b * brightness // 255))
 
         strip.show()
@@ -345,19 +358,7 @@ effects_list = [
             "intensity": 128
         }
     },
-    {
-        'ID': '91',
-        'func': BouncingBalls,
-        'Effect': 'Bouncing Balls',
-        'description': 'Simulates bouncing balls with gravity',
-        'parameters': {
-            'gravity': 9.8,
-            'num_balls': 3,
-            'overlay': False,
-            'wait_ms': 50,
-            'iterations': 100
-        }
-    },
+
     {
         'ID': '49',
         'func': Fairy,

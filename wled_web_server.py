@@ -102,6 +102,7 @@ def index():
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
     print(f"Options passed to template: {options}")
     print(f"Selected value passed to template: {selected_value}")
+    print(f"config_data: {config_data}")
 
  
     return render_template('index.htm', data=config_data, options=options, selected_value=selected_value)
