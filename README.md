@@ -1,5 +1,10 @@
 # dune-weaver-wled
 
+##
+There are really several ways you can try this out.  The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
+
+If you do this you could also modify your Dune Weaver WLED settings to point to your PC to get an idea of how it would look from the UI.  You won't really be controlling anything, but you'll get a chance to see if the software is worth trying.
+
 ## The really short introduction
 
 For those with short attention spans who just want to try this software, copy and paste the following into your Raspberry Pi terminal session:
@@ -14,11 +19,13 @@ If you want to actually see the LEDs you'll need to hook up the data from the LE
 
 ## If you're still here
 
-This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  The Dune Weaver project uses standalone WLED devices to control the lighting for the sand table.   The project uses a Raspberry Pi to control a CNC board (mks dlc32 running Fluidnc).   Since the Raspberry Pi Zero 2w is an essential part of the system, I've implemented WLED compatible software to replace the additional ESP32 device.  The commercial WLED devices are probably far less hassle and provide some needed level shifting/wiring simplification as well as many more features, so using these might be your best choice.   I was interested in having one less device that needs to be on my network and simplifing the overall hardware design, so I've implemented this software.
+This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  The Dune Weaver project uses standalone WLED devices to control the lighting for the sand table.   The project uses a Raspberry Pi to control a CNC board (mks dlc32 running Fluidnc).   Since the Raspberry Pi Zero 2w is an essential part of the system, I've implemented WLED compatible software to replace the additional ESP32 device.  The commercial WLED devices are probably far less hassle and provide some needed level shifting/wiring simplification as well as many more features, so using these might be your best choice.   I was interested in having one less device that needs to be on my network and simplifying the overall hardware design, so I've implemented this software.
 
 The image below shows this software integrated into the Dune Weaver interface.  It looks almost exactly like the WLED interface (most of the web code is theirs, so it's not surprising).  
 
 ![Screenshot 2025-03-13 164145](https://github.com/user-attachments/assets/1a2445e7-8293-41fc-a84b-e79efbb004a6)
+
+
 
 
 ## Installation
@@ -69,7 +76,7 @@ Isn't too hard to explain, since it should behave exactly like WLED in this envi
 * Can't modify or delete segments.  Segment 0 is reserved for the table, Segment 1 can be used (or not) for under table lighting.  
 * Can't modify or delete presets or playlists.  I'll add support for any of these as needed.
 * Some needed effects, playlists are not yet implemented.
-* I'm not sure if the behavior matches WLED in all cases - I need to do some direct comparisions
+* I'm not sure if the behavior matches WLED in all cases - I need to do some direct comparisons
 * Parameters for effects (transition time, color, speed, etc.) are not yet implemented
 * There is a lot of cleanup needed, both in the repository and I the actual code.
 
@@ -90,13 +97,9 @@ This is implemented as a flask web server thread and a backend thread that runs 
 
 Effects IDs need to match those in the official WLED documentation https://kno.wled.ge/features/effects/.   The file new_effects.js (used for the web ui patch) and the data in effects_list in wled_rpi.py need to have the effect name and id updated in them to show/work correctly.   Other than that any effect needs to call checkCancel() on a periodic basis.  I would like to keep this to the current two threads (flask/rpi_ws281x interface) so all timing/scheduling will need to be done from the rpi_ws281x thread
 
-### Patching WEB UI
-
-The patch process is a little tricky at times.   I've needed modify the HTML, javascript/web socket code.  For the most part I've tried to hide elements or stub them out(websocket class) rather than delete them (since deleting may cause other issues with missing resources).   When the build_web.py script is run it makes a copy of the old templates and static directory and places them in the backup_web directory (if it exists).  There is a tool compare_backups.py that looks for the differences between the files ... it's useful because you may not always notice when something went wrong when changing these pages.
-
 ## Docker, virtual environment
 
-I haven't really investigaged running in these conditions.   Docker can be somewhat strange when it comes with interfacing with hardware and supporting this is probably never going to be a priority for me.  There should be no reason that virtual environments will be an issue, but this is untested.  The service itself currently runs at root level due to the access of /dev/mem.  
+I haven't really investigated running in these conditions.   Docker can be somewhat strange when it comes with interfacing with hardware and supporting this is probably never going to be a priority for me.  There should be no reason that virtual environments will be an issue, but this is untested.  The service itself currently runs at root level due to the access of /dev/mem.  
 
 ## Testing procedure and installation
 
@@ -107,41 +110,9 @@ cd dune-weaver-wled
 sudo python install_scripts/startService.py start
 ```
 
-## Uninstall
 
-The startSerice.py program will also uninstall or restart the service.
-```
-Usage: python install_scripts/startService.py <start|stop|restart|uninstall>
-```
 
-This one is minimally tested.   Any python packages installed will remain, so it doesn't completely restore your system to it's original state.  If you're using the Pi Zero 2w with prototype software to store your bitcoin or other really important information you might want to rethink some of your life choices ...
 
-## API needing to be tested/supported
 
-The WEB UI is mostly complete, with the exception of configuration.   I'm not able to use the settings_led.htm 
-page. so I'll need to code that from scratch to get configuration for number of leds, led strip type
-### Setting brightness, power
-
-Should already work
-
-### Specific Effects
-
-Only effect id 0 (solid) and 47 (Loading) are used.  I can implement something appropriate for 47, it may not match WLED exactly.   I can add the parameters fairly easily.
-
-Effect id 47 is Loading 
-Loading	Moves a sawtooth pattern along the strip
-	⋮	🎨 Fx, Bg	Speed, Fade
-
-# Preset 1, 2
-
-Are used.   These I'm planning on having some default, plausible action but you won't be able to modify it.
-effect id, brightness, hex  (0, 47
-preset 1, 2
-
-{"bri": value}
-{"on": "t"}
-{"seg": [seg]}
-{"ps": preset_id})        preset 1, 2
-{"seg": [seg] }  seg 0, 1?
 
 
