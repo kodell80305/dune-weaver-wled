@@ -11,7 +11,7 @@ For those with short attention spans who just want to try this software, copy an
 ```
 git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
-sudo python install_scripts/startService.py start
+sudo python scripts/startService.py start
 ```
 That's it, you're done as far as the software is concerned.  Wait until the service has started and open a browser with the address of your Raspberry Pi.
 
@@ -33,7 +33,7 @@ The image below shows this software integrated into the Dune Weaver interface.  
 The web pages are all directly from the WLED project.  I've included WLED as a submodule. Note that I have not tested this software using a virtual environment or using docker.  After cloning the repo, you should be able to run 
 
 ```
-sudo python install_scripts/startService.py start
+sudo python scripts/startService.py start
 ```
 
 
@@ -52,7 +52,7 @@ I may need to  modify this script to blacklist the snd_bcm2835 module and disabl
 At any time
 ```
 git pull
-sudo python install_scripts/startService.py start
+sudo python scripts/startService.py start
 ```
 will update the software to the latest version.
 
@@ -107,7 +107,7 @@ Run on standard Ombonad Dune Weaver table.   Fresh install latest 64 bit Bookwor
 ```
 git clone  https://github.com/kodell80305/dune-weaver-wled.git
 cd dune-weaver-wled
-sudo python install_scripts/startService.py start
+sudo python scripts/startService.py start
 ```
 I created test case for all the current Dune Weaver API calls.   You can run the command
 ```
