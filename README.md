@@ -1,5 +1,10 @@
 # dune-weaver-wled
 
+##
+There are really several ways you can try this out.  The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
+
+If you do this you could also modify your Dune Weaver settings to point to your PC to get an idea of how it would look from the UI.  You won't really be controlling anything, but you'll get a chance to see if the software is worth trying.
+
 ## The really short introduction
 
 For those with short attention spans who just want to try this software, copy and paste the following into your Raspberry Pi terminal session:
@@ -20,10 +25,7 @@ The image below shows this software integrated into the Dune Weaver interface.  
 
 ![Screenshot 2025-03-13 164145](https://github.com/user-attachments/assets/1a2445e7-8293-41fc-a84b-e79efbb004a6)
 
-##
-There are really several ways you can try this out.  The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
 
-If you do this you could also modify your Dune Weaver settings to point to your PC to get an idea of how it would look in this environment.  You won't really be controlling anything, but you'll get a chance to see if the software is worth trying.
 
 
 ## Installation
