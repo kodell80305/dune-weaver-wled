@@ -12,7 +12,7 @@
 </head>
 <body onload="onLoad()">
 
-<div id="cv" class="overlay">Loading WLED UI...</div>
+<div id="cv" class="overlay">gggg WLED UI...</div>
 <noscript><div class="overlay" style="opacity:1;">Sorry, WLED UI needs JavaScript!</div></noscript>
 <div id="bg"></div>
 
@@ -144,7 +144,7 @@
 					<label class="radio schkl" onclick="loadPalettes()">
 						<div class="lstIcontent">
 							<span class="lstIname">
-								Loading...
+								Loading...jjjj
 							</span>
 						</div>
 					</label>
@@ -158,7 +158,7 @@
 			<p class="labels hd" id="modeLabel">Effect mode</p>
 			<div class="staytop fnd" id="fxFind" onmousedown="preventBlur(event);">
 				<i class="icons clear-icon" onclick="clean(this);">&#xe38f;</i>
-				<i class="icons search-icon" style="cursor:pointer;">&#xe0a1;</i>
+
 				<div id="filters" class="filter fade">
 					<label id="filterPal" title="Uses palette" class="check fchkl">&#x1F3A8;
 						<input type="checkbox" data-flt="&#x1F3A8;" onchange="filterFx();">
@@ -191,7 +191,7 @@
 					<label class="radio schkl" onclick="loadFX()">
 						<div class="lstIcontent">
 							<span class="lstIname">
-								Loading...
+								Loadiaaaaang...
 							</span>
 						</div>
 					</label>
@@ -258,19 +258,10 @@
 
 	<div id="Segments" class="tabcontent">
 		<p class="labels hd" id="segLabel">Configuration</p>
-
 		<form id="form_s" name="Sf" method="post">
-      
-    
-			<br>
-            <label for="totalLeds">Total LEDs:</label>
-            <input t type="number" class="m" min="0" max="255"" name="totalLeds" value="{{ data.totalLeds }}">
-            <br>
-            <br>
- 
-		<br>
+
 		<div id="segcont">
-			Loading...
+			Loading...bbbb
 		</div>
 		<div id="segutil" class="staybot" hidden style="display:none">
 	
@@ -296,7 +287,7 @@
 		min<br>
 
 
-		<p>Transition: <input id="tt" type="number" min="0" max="65.5" step="0.1" value="0.7" onchange="parseFloat(this.value)===0?gId('bsp').classList.add('hide'):gId('bsp').classList.remove('hide');">&nbsp;s</p>
+		<p> <input id="tt" type="number" min="0" max="65.5" step="0.1" value="0.7" onchange="parseFloat(this.value)===0?gId('bsp').classList.add('hide'):gId('bsp').classList.remove('hide');" hidden>&nbsp;</p>
 		<p id="bsp">Blend:
 			<select id="bs" class="sel-sg" onchange="requestJson({'bs':parseInt(this.value)})">
 				<option value="0">Fade</option>
@@ -335,7 +326,7 @@
 
 		</div>
 		<div id="pcont" class="list" hidden style="display:none;">
-			<span onclick="loadPresets()">Loading...</span>
+			<span onclick="loadPresets()">Loaccccding...</span>
 		</div>
 		<div id="putil" class="staybot" hidden style="display: none;"></div>
 		</div>
@@ -358,28 +349,46 @@
 		<img class="wi" alt="" src="data:image/png;base64,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" >
 
 		</div>
-	<div id="kv">Loading...</div><br>
+	<div id="kv">
+		<a href="https://github.com/tuanchris/dune-weaver">
+			<div style="border:1px;border-style: solid;"
+				<p class="separate-link-blue"> </p>Dune Weaver</p>
+			</div>
+		</a>
+		<br>
+		<br>
+		<div class="c2">
+
+
+
+
+	</div><br>
 	<div>
-		<button class="btn ibtn" onclick="requestJson()">Refresh</button>
+		<button class="btn ibtn" onclick="requestJson()" hidden>Refresh</button>
 		<button class="btn ibtn" onclick="toggleNodes()" hidden>Instance List</button>
 		<button class="btn ibtn" onclick="window.open(getURL('/update'),'_self');" hidden>Update WLED</button>
 		<button class="btn ibtn" id="resetbtn" onclick="cnfReset()" hidden>Reboot WLED</button>
 	</div>
 	<br>
-	<span class="h">Made with&#32;<span id="heart">&#10084;&#xFE0E;</span>&#32;by&#32;<a href="https://github.com/Aircoookie/" target="_blank">Aircoookie</a>&#32;and the&#32;<a href="https://wled.discourse.group/" target="_blank">WLED community</a></span>
+	<pre>
+Dune Weaver is a mesmerizing, motorized sand table that draws intricate patterns 
+in sand using a steel ball moved by a magnet. 
+	
+This project combines hardware and software, leveraging a mks dlc32 for hardware 
+control and a Raspberry Pi Zero 2w Python/Flask-based web interface for the user interface.
+</pre>
 </div>
 
 <div id="nodes" class="modal">
 	<button class="btn btn-xs close" onclick=" toggleNodes()" hidden><i class="icons rot45">&#xe18a;</i></button>
 	<div id="ndlt">WLED instances</div>
-	<div id="kn">Loading...</div>
-	<div style="position:sticky;bottom:0;">
-		<button class="btn ibtn" onclick="loadNodes()">Refresh</button>
+	<div id="kn">Loaeeeeding...</div>
+
 	</div>
 </div>
 
 <div id="mlv2D" class="modal">
-	<div id="klv2D" style="width:100%; height:100%">Loading...</div>
+	<div id="klv2D" style="width:100%; height:100%">ffff...</div>
 </div>
 
 <div id="rover" class="modal">
@@ -400,6 +409,17 @@
 -->
 <script src="{{ url_for('static', filename='js/iro.js') }}"></script>
 <script src="{{ url_for('static', filename='js/rangetouch.js') }}"></script>
+<script>
+    var configData = [
+		['seg0_start', {{ data.seg0_start }} ],
+        ['seg0_len:', {{  data.seg0_len }} ] ,
+        ['seg1_start', {{ data.seg1_start }} ],
+        ['seg1_len', {{ data.seg1_len  }} ]
+];
+
+
+  {{ data.effect|safe  }}
+</script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
