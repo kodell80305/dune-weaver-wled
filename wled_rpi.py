@@ -415,9 +415,8 @@ def get_effects_js():
 #a command like setting the led brightness, then we'll restart the pattern.   Any other command
 #will set a different effect to run.  
 def checkCancel():
-    global wled_web_server
 
-    if not wled_web_server.myQueue.empty():
+    if not myQueue.empty():
         return True
     return False    
 
@@ -524,18 +523,12 @@ def init_rpi(config_data):
  
 def run_rpi_app():
     global current_effect
-    global wled_web_server
-
-
-
-
-    
     strip.show()
     try:    
         while True:
-            if not wled_web_server.myQueue.empty():
+            if not myQueue.empty():
                 
-                func, args = wled_web_server.myQueue.get()
+                func, args = myQueue.get()
                 func(*args)
 
             if(current_effect > 0):
