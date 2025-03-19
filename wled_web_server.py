@@ -1,29 +1,20 @@
-from flask import Flask, send_from_directory, request, jsonify, render_template
-
 import logging
-
 import os
 import math
 import threading
 import config
 import requests
 import json
+from queue import Queue
 
+from flask import Flask, send_from_directory, request, jsonify, render_template
 
-
-    
+myQueue = Queue()
 
 state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
 
 app = Flask(__name__, static_folder='static')
 
-    
-config_data = {
-    "LED_COUNT": 87,
-    "SEGMENT_0_START": 11,
-    "LED_STRIP" : "WS2811_STRIP_RGB",
-    "LED_COLOR": [0, 0, 255]
-}
 
 # Define the path to the config file
 config_file_path = "config.json"
@@ -37,12 +28,43 @@ def read_json(path):
     with open(path) as file_in:
         return json.load(file_in)
 
+def init_config():
+    default_config = {
+        "colorOrder": "GRB",
+        "duration": 7,
+        "seg0s": 0,
+        "seg0e": 130,
+        "seg0bri": 128,
+        "seg0pwr": True,
+        "seg1s": 0,
+        "seg1e": 10,
+        "seg1bri": 128,
+        "seg1pwr": True,
+        "timer": 0,
+        "effect": "",
+        "defaultColor": (0, 0, 255),
+        "individAddress": True
+    }
 
-# Check if the config file exists, if not create it with default config data
-if not os.path.exists(config_file_path):
-    write_json(config_file_path, config_data)
-else:
-    config_data = read_json(config_file_path)
+    # Check if the config file exists
+    if not os.path.exists(config_file_path):
+        write_json(config_file_path, default_config)
+        return default_config
+    else:
+        config_data = read_json(config_file_path)
+        # Ensure all keys from the default config exist in the loaded config
+
+        for key, value in default_config.items():
+            if key not in config_data:
+                config_data[key] = value
+                print(key)
+                breakpoint()
+
+            print(key, config_data[key])
+
+        print(config_data)
+        write_json(config_file_path, config_data)  # Save updated config
+        return config_data
 
 
 
@@ -56,25 +78,16 @@ presets_data="{\"0\":{},\"1\":{\"on\":true,\"bri\":100,\"transition\":0,\"mainse
 
 state = json.loads(si_data)
 
-
-
-#We'll only ever care about one segment
-state['state']['seg'][0]['len'] = config.LED_COUNT
-
 from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect,  get_effects_js
 
-led_colors = [(0, 0, 255)] * config.LED_COUNT  
-
 app = Flask(__name__, static_folder='static')
-
-
 
 
 @app.route('/', methods=["GET", "POST"])
 def index():
     # Options for the select box
 
-    options =  ['WS2811_STRIP_RGB', 'WS2811_STRIP_RBG', 'WS2811_STRIP_GRB', 'WS2811_STRIP_GBR', 'WS2811_STRIP_BRG', 'WS2811_STRIP_BGR']
+    options =  ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
     config_data = read_json(config_file_path)
 
     
@@ -85,18 +98,20 @@ def index():
 
     # Handle POST request to update the values
     if request.method == 'POST':
-        config_data['totalLeds'] = request.form.get('totalLeds', config_data['totalLeds'])
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
-        config_data['brightness'] = request.form.get('CA', config_data['brightness'])
+        config_data['brightnes'] = request.form.get('CA', config_data['brightness'])
         config_data['duration'] = request.form.get('TL', config_data['duration'])
-        config_data['seg0_start'] = request.form.get('seg0_start', config_data['seg0_start']) 
-        config_data['seg0_len'] = request.form.get('seg0_len', config_data['seg0_len'])
-        config_data['seg1_start'] = request.form.get('seg1_start', config_data['seg1_start'])
-        config_data['seg1_len'] = request.form.get('seg1_len', config_data['seg1_len'])
+        config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
+        config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
+        config_data['seg0bri'] = request.form.get('seg0bri', config_data['seg0bri'])
+        config_data['seg1s'] = request.form.get('seg1s', config_data['seg1s'])
+        config_data['seg1e'] = request.form.get('seg1e', config_data['seg1e'])
+        config_data['seg1bri'] = request.form.get('seg1bri', config_data['seg1bri'])
+
         config_data['timer'] = request.form.get('timer', config_data['timer'])
         config_data['effect'] = get_effects_js();
         print(f"Updated settings: {config_data}")
-        breakpoint()
+
 
     # Pass data and options to the template
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
@@ -112,28 +127,40 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     global state
     state['state']['pl'] = -1
     state['state']['seg'][0]['fx'] = -1
-    led_colors = [(rval, gval, bval)]*config.LED_COUNT
+
     state['state']['seg'][0]['col'][0] = [rval, gval, bval]
 
-    print("set_color", led_colors[0])
-    config.myQueue.put((set_led, ((led_colors),)))    
+    config_data = read_json(config_file_path)  #  Update defaultColor in config.json.  
+    config_data['defaultColor'] = (rval, gval, bval)
+    write_json(config_file_path, config_data)
+               
+    led_color = (rval, gval, bval)
+    print("set_color", led_color)
+    myQueue.put((set_led, ((led_color),)))    
    
 def handle_on(on):
+    #On command with no other parameters is a power on command.   Use the last single color setting
     global state
     state['state']['on'] = on
-    if(on):        
+    if on:
         print("set power on")
-        [config.DEFAULT_COLOR]*config.LED_COUNT
-        config.myQueue.put((set_led, ((led_colors),)))
+        config_data = read_json(config_file_path)  # Read defaultColor from config.json
+        led_color = config_data['defaultColor']
+        myQueue.put((set_led, ((led_color),)))
     else:
         print("set power off")
-        config.myQueue.put((all_off, ()))
+        myQueue.put((all_off, ()))
         
 def handle_bri(bri):
     global state
     print(f'handle_bri({bri})')
     state['state']['bri'] = bri
-    config.myQueue.put((update_bri, (bri,)))
+
+    config_data = read_json(config_file_path)  #  Update seg0bri in config.json.  
+    config_data['seg0bri'] = bri
+    write_json(config_file_path, config_data)
+
+    myQueue.put((update_bri, (bri,)))
 
 def handle_effect(effect_id):
     print(f'handle_effect({effect_id})')
@@ -145,14 +172,14 @@ def handle_effect(effect_id):
 
     state['state']['pl'] = -1                #cancel any playlist currently active
     state['state']['seg'][0]['fx'] = effect_id
-    config.myQueue.put((update_effect, (effect_id,)))
+    myQueue.put((update_effect, (effect_id,)))
 
 def handle_playlist(playlist_id):
     global state
     state['state']['pl'] = int(playlist_id)
     state['state']['seg'][0]['fx'] = -1
     print(f'handle_playlist({playlist_id})')
-    config.myQueue.put((update_effect, (playlist_id,)))
+    myQueue.put((update_effect, (playlist_id,)))
 
 
 @app.route("/json/fxdata", methods=["GET", "POST"])
@@ -212,7 +239,7 @@ def parse_state():
             "message": "JSON received successfully",
             "received_data": data
         }
-        # print("data", data)
+        print("data", data)
 
         for key, value in data.items():
             match key:
@@ -253,6 +280,8 @@ def parse_state():
         return jsonify(response), 200
         
     except Exception as e:
+        print("Exception", e)   
+        print(str(e))
         breakpoint()
         return jsonify({"error": str(e)}), 500
     
@@ -260,9 +289,6 @@ def parse_state():
 def parse_json():
     return parse_state()
 
-#probably should change the port to somethings else
-
-#socketio = SocketIO(app)
 
 def run_flask_app():
 #run on 127.0.0.0    app.run(debug=False, use_reloader=False)
@@ -276,23 +302,6 @@ def run_flask_app():
     app.run(host="0.0.0.0", port=80)
 
 
-#app = Flask(__name__)
-#socketio = SocketIO(app)
-
-
-#@socketio.on('connect')
-#def handle_connect():
-#    print('Client connected')
-
-#@socketio.on('message')
-#def handle_message(data):
-#    print('Received message:', data)
-    # Broadcast the message back to all clients
-#    socketio.emit('message', data)
-
-#@socketio.on('disconnect')
-#def  handle_disconnect():
-#    print('Client disconnected')
 
 def start_flask():
     flask_thread = threading.Thread(target=run_flask_app)

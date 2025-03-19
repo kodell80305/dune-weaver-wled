@@ -47,14 +47,9 @@ if not rpi_ws281x_available:
 else:
     from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
     from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
-    LED_COLOR=WS2811_STRIP_BRG
 
-LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
-# LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
-LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA = 10          # DMA channel to use for generating signal (try 10)
-LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
-LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+
+from wled_web_server import myQueue
 
 # empty variable declarations, to stop Python from complaining
 Theater = lambda x: x
@@ -64,17 +59,23 @@ strip = None
 current_effect = -1   # -1 = no effect
 current_playist = -1
 current_func = None
-current_color = config.DEFAULT_COLOR
+current_color = (0,0,0)
+
+# Define global variables for segment values
+seg0s = 0
+seg0e = 0
+seg1s = 0
+seg1e = 0
 
 
-#I don't think it really matters what we return from get_effects() anymore ... the javascript is 
-#being overridden.
+#For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
+#a command like setting the led brightness, then we'll restart the pattern.   Any other command
+#will set a different effect to run.  
+def checkCancel():
+    if not myQueue.empty():
+        return True
+    return False 
 
-effects_data="[\"Solid\",\"Blink\",\"Breathe\",\"Wipe\"]"
-
-def get_effects():
-    json_effects = []
-    return json.loads(effects_data)
 
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
@@ -91,7 +92,7 @@ def wheel(pos):
 def Rainbow(strip, wait_ms=20, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
     for j in range(256 * iterations):
-        for i in range(config.SEGMENT_0_START, strip.numPixels()):
+        for i in range(seg0s, seg0e):  # Use global seg0s
             strip.setPixelColor(i, wheel((i + j) & 255))
         strip.show()
         time.sleep(wait_ms / 1000.0)
@@ -102,8 +103,7 @@ def Rainbow(strip, wait_ms=20, iterations=1):
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color=Color(*current_color), wait_ms=50):
     """Wipe color across display a pixel at a time."""
-    for i in range(config.SEGMENT_0_START, strip.numPixels()):
- 
+    for i in range(seg0s, seg0e):  # Use global seg0s
         strip.setPixelColor(i, color)
         strip.show()
         time.sleep(wait_ms / 1000.0)
@@ -116,13 +116,13 @@ def Theater(strip, color=Color(*current_color), wait_ms=50, iterations=10):
     """Movie theater light style chaser animation."""
     for j in range(iterations):
         for q in range(3):
-            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
+            for i in range(seg0s, seg0e, 3):  # Use global seg0s
                 strip.setPixelColor(i + q, color)
             strip.show()
             time.sleep(wait_ms / 1000.0)
             #every effect should return if anything is in the queue
      
-            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
+            for i in range(seg0s, seg0e, 3):  # Use global seg0s
                 strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
@@ -131,7 +131,7 @@ def Theater(strip, color=Color(*current_color), wait_ms=50, iterations=10):
 def Rainbow(strip, wait_ms=20, iterations=5):
     """Draw rainbow that uniformly distributes itself across all pixels."""
     for j in range(256 * iterations):
-        for i in range(config.SEGMENT_0_START, strip.numPixels()):
+        for i in range(seg0s, seg0e):  # Use global seg0s
             strip.setPixelColor(i, wheel(
                 (int(i * 256 / strip.numPixels()) + j) & 255))
         strip.show()
@@ -144,11 +144,11 @@ def TheaterRainbow(strip, wait_ms=50):
 
     for j in range(256):
         for q in range(3):
-            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
+            for i in range(seg0s, seg0e, 3):  # Use global seg0s
                 strip.setPixelColor(i + q, wheel((i + j) % 255))
             strip.show()
             time.sleep(wait_ms / 1000.0)
-            for i in range(config.SEGMENT_0_START, strip.numPixels(), 3):
+            for i in range(seg0s, seg0e, 3):  # Use global seg0s
                  strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
@@ -157,6 +157,7 @@ def Loading(strip, wait_ms=50, iterations=10):
     """
     Moves a sawtooth pattern along the strip.
     """
+    print("In Loading")
     num_pixels = strip.numPixels()
     pattern_length = 10  # Length of the sawtooth pattern
 
@@ -213,12 +214,12 @@ def Fairy(strip, speed=50, num_flashers=10, iterations=100):
     """
     Simulates twinkling lights inspired by Christmas lights.
     """
-    num_pixels = strip.numPixels()
+ 
     flashers = [random.randint(0, num_pixels - 1) for _ in range(num_flashers)]
     colors = [random.randint(0, 255) for _ in range(num_flashers)]  # Store color positions for the wheel
 
     for _ in range(iterations):
-        for i in range(num_pixels):
+        for i in range(seg0s, seg0e):  # Use global seg0s
             strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
 
         for i, flasher in enumerate(flashers):
@@ -241,7 +242,7 @@ def Glitter(strip, speed=50, intensity=128, overlay=False, iterations=100):
     """
     num_pixels = strip.numPixels()
     for _ in range(iterations):
-        for i in range(num_pixels):
+        for i in range(seg0s, seg0e):
             if not overlay:
                 strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
 
@@ -395,6 +396,13 @@ effects_list = [
     }
 ]
 
+
+def get_effects():
+    """
+    Returns the list of available effects extracted from effects_list.
+    """
+    return [effect["Effect"] for effect in effects_list]
+
 def get_effects_js():
     """
     Generates a JavaScript string for the effects list in the format:
@@ -414,14 +422,7 @@ def get_effects_js():
     return effects_js
 
 
-
-#For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
-#a command like setting the led brightness, then we'll restart the pattern.   Any other command
-#will set a different effect to run.  
-def checkCancel():
-    if not config.myQueue.empty():
-        return True
-    return False    
+   
 
 def run_effects(effect_id):
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
@@ -447,21 +448,19 @@ def all_off():
     current_effect = -1
     current_pl = -1
 
-    for i in range(0, strip.numPixels()):
+    for i in range(0, strip.numPixels()): 
         strip.setPixelColor(i, Color(0, 0, 0))
     
     strip.show()
 
-def set_led(led_colors):
+def set_led(led_color):
     global current_effect, current_pl
     current_effect = -1
     current_pl = -1
     #set leds to the values in the list led_colors
 
-    for i in range(0, config.SEGMENT_0_START):
-        strip.setPixelColor(i, Color(128,128,128))
-    for i in range(config.SEGMENT_0_START, strip.numPixels()):
-        strip.setPixelColor(i, Color(*led_colors[i]))
+    for i in range(seg0s, seg0e):  # Use global seg0s and seg0e
+        strip.setPixelColor(i, Color(*led_color))
     strip.show()
 
 def update_effect(effect_id):
@@ -477,37 +476,97 @@ def update_playlist(playlist_id):
     current_effect = -1
 
 
-def init_rpi():
-    global strip
 
-    print("Initializing ", config.LED_COUNT)
-    strip = PixelStrip(config.LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR )
-    strip.begin()
+LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
+# LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA = 10          # DMA channel to use for generating signal (try 10)
+LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+
+def init_rpi(config_data):
+    global strip, seg0s, seg0e, seg1s, seg1e
+
+    # Map colorOrder values to corresponding WS2811_STRIP constants
+    color_order_map = {
+        'RGB': WS2811_STRIP_RGB,
+        'RBG': WS2811_STRIP_RBG,
+        'GRB': WS2811_STRIP_GRB,
+        'GBR': WS2811_STRIP_GBR,
+        'BRG': WS2811_STRIP_BRG,
+        'BGR': WS2811_STRIP_BGR
+    }
+
+    # Save segment values in global variables
+    seg0s = config_data['seg0s']
+    seg0e = config_data['seg0e']
+    seg1s = config_data.get('seg1s', 0)  # Default to 0 if not provided
+    seg1e = config_data.get('seg1e', 0)  # Default to 0 if not provided
+    current_color = config_data.get('defaultColor', (0, 0, 255))  # Default to blue if not provided
+
+    # Calculate LED count as the maximum of seg0e and seg1e
+    led_count = max(seg0e, seg1e)
+
+    # Set LED_COLOR based on colorOrder in config_data
+    color_order = config_data.get('colorOrder', 'RGB')  # Default to 'RGB' if not specified'
+
+    LED_COLOR = color_order_map.get(color_order, WS2811_STRIP_RGB)  # Default to WS2811_STRIP_RGB if invalid
+
+    print("Initializing with LED count:", led_count, "and color order:", color_order)
+
+    try:    
+        strip = PixelStrip(led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR)
+        strip.begin()
+    
+    except Exception as e: 
+        breakpoint()
+        print(e)
 
  
 def run_rpi_app():
     global current_effect
-#
 
-    for i in range(0, config.SEGMENT_0_START):
-        strip.setPixelColor(i, Color(0,128,0))
-    
+  # Parse command line arguments
+    for i in range(seg0s, seg0e):  # Use global seg0s
+        strip.setPixelColor(i, Color(255, 0, 0))
+
     strip.show()
-    
-    try:    
-        while True:
-            if not config.myQueue.empty():
-                func, args = config.myQueue.get()
-                func(*args)
+    time.sleep(1)
 
-            if(current_effect > 0):
+    for i in range(seg0s, seg0e):  # Use global seg0s
+        strip.setPixelColor(i, Color(0, 255, 0))
+    strip.show()
+    time.sleep(1)
+
+    for i in range(seg0s, seg0e):  # Use global seg0s
+        strip.setPixelColor(i, Color(0, 0, 255))
+    strip.show()
+    time.sleep(1)
+
+    for i in range(seg0s, seg0e):  # Use global seg0s
+        strip.setPixelColor(i, Color(0, 0, 0))
+    strip.show()
+
+
+    try:
+        while True:
+            # Check if there are messages in the queue
+            if not myQueue.empty():
+                func, args = myQueue.get()
+                func(*args)
+                myQueue.task_done()
+
+            # Run the current effect if set
+            if current_effect > 0:
                 run_effects(current_effect)
             else:
-                time.sleep(100/1000.0)
+                time.sleep(0.1)  # Sleep briefly to avoid busy-waiting
 
-
-    except Exception as e: 
+    except Exception as e:
+        print(f"Error in run_rpi_app: {e}")
         all_off()
+
+
 
 
 

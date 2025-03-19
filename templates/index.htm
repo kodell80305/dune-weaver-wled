@@ -276,16 +276,20 @@
 		</select>
 		<br>
 		<br>
-		
-		<label for="CA">Default Brightness:</label>
-		<input name="CA" type="number" class="m" min="0" max="255" value="{{ data.brightness }}">
-		(0-255)
+		<label>
+			<input type="checkbox" name="individuallyAddressable" 
+				   {% if data.individAddress %}checked{% endif %}>
+			Individually Addressable
+		</label>
 		<br>
 		<br>
 		<label for="TL">Default timer:</label>
 		<input name="TL" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
 		min<br>
 
+
+		<br>
+		<br>
 
 		<p> <input id="tt" type="number" min="0" max="65.5" step="0.1" value="0.7" onchange="parseFloat(this.value)===0?gId('bsp').classList.add('hide'):gId('bsp').classList.remove('hide');" hidden>&nbsp;</p>
 		<p id="bsp">Blend:
@@ -312,8 +316,50 @@
 		</p>
 		<div id="segutil2">
 			<br>
-			<button type="submit" class="btn btn-s" >Save</button>
+			<button type="submit" class="btn btn-s" onclick="handleSaveButtonClick()">Save</button>
 		</div>
+		<script>
+			// Populate hidden inputs dynamically from configData
+			configData.forEach(([key, value]) => {
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = key;
+				input.value = value;
+				document.getElementById('form_s').appendChild(input);
+			});
+
+			// Function to update hidden inputs dynamically
+			function updateHiddenInputs() {
+				const form = document.getElementById('form_s');
+				configData.forEach(([key, value]) => {
+					const input = form.querySelector(`input[name="${key}"]`);
+					if (input) {
+						input.value = value; // Update existing hidden input
+					}
+				});
+			}
+
+			// Call updateHiddenInputs whenever a segment is modified
+			function setSeg(segmentId) {
+				// ...existing code...
+				if (segmentId === 0) {
+					configData.find(item => item[0] === 'seg0s')[1] = start;
+					configData.find(item[0] === 'seg0e')[1] = stop;
+				} else if (segmentId === 1) {
+					configData.find(item[0] === 'seg1s')[1] = start;
+					configData.find(item[0] === 'seg1e')[1] = stop;
+				}
+				updateHiddenInputs(); // Ensure hidden inputs are updated
+				requestJson(obj);
+			}
+
+			function handleSaveButtonClick(event) {
+				event.preventDefault(); // Prevent default form submission
+				alert('Save button clicked! Calling updateHiddenInputs');
+				updateHiddenInputs(); // Update hidden inputs with the latest values
+				document.getElementById('form_s').submit(); // Submit the form programmatically
+			}
+		</script>
 	</form>
 		<p id="ledmap" class="hide"></p>
 	</div>
@@ -411,10 +457,14 @@ control and a Raspberry Pi Zero 2w Python/Flask-based web interface for the user
 <script src="{{ url_for('static', filename='js/rangetouch.js') }}"></script>
 <script>
     var configData = [
-		['seg0_start', {{ data.seg0_start }} ],
-        ['seg0_len:', {{  data.seg0_len }} ] ,
-        ['seg1_start', {{ data.seg1_start }} ],
-        ['seg1_len', {{ data.seg1_len  }} ]
+		['seg0s', {{ data.seg0s }} ],
+        ['seg0e', {{  data.seg0e }} ] ,
+        ['seg1s', {{ data.seg1s }} ],
+        ['seg1e', {{ data.seg1e  }} ],
+        ['seg0bri', {{ data.seg0bri }} ],
+        ['seg0pwr', {{ data.seg0pwr }} ],
+        ['seg1bri', {{ data.seg1bri }} ],
+        ['seg1pwr', {{ data.seg1pwr }} ]
 ];
 
 

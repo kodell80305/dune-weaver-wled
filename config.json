@@ -1,1 +1,0 @@
-{"totalLeds": 87, "colorOrder": "WS2811_STRIP_RGB", "brightness": 41, "duration": 18, "seg0_start": 33, "seg0_len": 34, "seg1_start": 35, "seg1_len": 36, "timer": 60, "effect": "var effects = [\n    '[0', \"Solid\"],\n    '[13', \"Theater\"],\n    '[14', \"Theater Rainbow\"],\n    '[9', \"Rainbow\"],\n    '[14', \"Theater Rainbow\"],\n];"}
