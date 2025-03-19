@@ -2,7 +2,6 @@ import logging
 import os
 import math
 import threading
-import config
 import requests
 import json
 from queue import Queue
@@ -100,14 +99,13 @@ def index():
     if request.method == 'POST':
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
         config_data['brightnes'] = request.form.get('CA', config_data['brightness'])
-        config_data['duration'] = request.form.get('TL', config_data['duration'])
         config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
         config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
         config_data['seg0bri'] = request.form.get('seg0bri', config_data['seg0bri'])
         config_data['seg1s'] = request.form.get('seg1s', config_data['seg1s'])
         config_data['seg1e'] = request.form.get('seg1e', config_data['seg1e'])
         config_data['seg1bri'] = request.form.get('seg1bri', config_data['seg1bri'])
-
+        config_data['individAddress'] = request.form.get('individAddress', config_data['individAddress'])
         config_data['timer'] = request.form.get('timer', config_data['timer'])
         config_data['effect'] = get_effects_js();
         print(f"Updated settings: {config_data}")

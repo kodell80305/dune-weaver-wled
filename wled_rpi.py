@@ -2,7 +2,6 @@ import time
 import argparse
 import math
 from queue import Queue
-import config
 import importlib
 import json
 import random
@@ -66,16 +65,6 @@ seg0s = 0
 seg0e = 0
 seg1s = 0
 seg1e = 0
-
-
-#For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
-#a command like setting the led brightness, then we'll restart the pattern.   Any other command
-#will set a different effect to run.  
-def checkCancel():
-    if not myQueue.empty():
-        return True
-    return False 
-
 
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
@@ -157,7 +146,6 @@ def Loading(strip, wait_ms=50, iterations=10):
     """
     Moves a sawtooth pattern along the strip.
     """
-    print("In Loading")
     num_pixels = strip.numPixels()
     pattern_length = 10  # Length of the sawtooth pattern
 
@@ -422,7 +410,16 @@ def get_effects_js():
     return effects_js
 
 
-   
+
+#For now I'm just using the fact that a message is waiting to interrupt the effect ... if it's
+#a command like setting the led brightness, then we'll restart the pattern.   Any other command
+#will set a different effect to run.  
+def checkCancel():
+    global wled_web_server
+
+    if not wled_web_server.myQueue.empty():
+        return True
+    return False    
 
 def run_effects(effect_id):
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
@@ -448,7 +445,8 @@ def all_off():
     current_effect = -1
     current_pl = -1
 
-    for i in range(0, strip.numPixels()): 
+
+    for i in range(0, strip.num_pixels):  # Use global seg0e
         strip.setPixelColor(i, Color(0, 0, 0))
     
     strip.show()
@@ -504,12 +502,13 @@ def init_rpi(config_data):
     seg1e = config_data.get('seg1e', 0)  # Default to 0 if not provided
     current_color = config_data.get('defaultColor', (0, 0, 255))  # Default to blue if not provided
 
+    
+
     # Calculate LED count as the maximum of seg0e and seg1e
     led_count = max(seg0e, seg1e)
 
     # Set LED_COLOR based on colorOrder in config_data
-    color_order = config_data.get('colorOrder', 'RGB')  # Default to 'RGB' if not specified'
-
+    color_order = config_data.get('colorOrder', 'RGB')  # Default to 'RGB' if not specified
     LED_COLOR = color_order_map.get(color_order, WS2811_STRIP_RGB)  # Default to WS2811_STRIP_RGB if invalid
 
     print("Initializing with LED count:", led_count, "and color order:", color_order)
@@ -525,47 +524,30 @@ def init_rpi(config_data):
  
 def run_rpi_app():
     global current_effect
+    global wled_web_server
 
-  # Parse command line arguments
-    for i in range(seg0s, seg0e):  # Use global seg0s
-        strip.setPixelColor(i, Color(255, 0, 0))
 
+
+
+    
     strip.show()
-    time.sleep(1)
-
-    for i in range(seg0s, seg0e):  # Use global seg0s
-        strip.setPixelColor(i, Color(0, 255, 0))
-    strip.show()
-    time.sleep(1)
-
-    for i in range(seg0s, seg0e):  # Use global seg0s
-        strip.setPixelColor(i, Color(0, 0, 255))
-    strip.show()
-    time.sleep(1)
-
-    for i in range(seg0s, seg0e):  # Use global seg0s
-        strip.setPixelColor(i, Color(0, 0, 0))
-    strip.show()
-
-
-    try:
+    try:    
         while True:
-            # Check if there are messages in the queue
-            if not myQueue.empty():
-                func, args = myQueue.get()
+            if not wled_web_server.myQueue.empty():
+                
+                func, args = wled_web_server.myQueue.get()
                 func(*args)
-                myQueue.task_done()
 
-            # Run the current effect if set
-            if current_effect > 0:
+            if(current_effect > 0):
                 run_effects(current_effect)
             else:
-                time.sleep(0.1)  # Sleep briefly to avoid busy-waiting
+                time.sleep(100/1000.0)
 
-    except Exception as e:
-        print(f"Error in run_rpi_app: {e}")
+
+    except Exception as e: 
+        breakpoint()
+        print(e)
         all_off()
-
 
 
 
