@@ -56,12 +56,12 @@ def init_config():
         for key, value in default_config.items():
             if key not in config_data:
                 config_data[key] = value
-                print(key)
+                app.logger.info(key)
                 breakpoint()
 
-            print(key, config_data[key])
+            app.logger.info(f"{key}: {config_data[key]}")
 
-        print(config_data)
+        app.logger.info(config_data)
         write_json(config_file_path, config_data)  # Save updated config
         return config_data
 
@@ -98,7 +98,6 @@ def index():
     # Handle POST request to update the values
     if request.method == 'POST':
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
-        config_data['brightnes'] = request.form.get('CA', config_data['brightness'])
         config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
         config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
         config_data['seg0bri'] = request.form.get('seg0bri', config_data['seg0bri'])
@@ -108,14 +107,14 @@ def index():
         config_data['individAddress'] = request.form.get('individAddress', config_data['individAddress'])
         config_data['timer'] = request.form.get('timer', config_data['timer'])
         config_data['effect'] = get_effects_js();
-        print(f"Updated settings: {config_data}")
+        app.logger.info(f"Updated settings: {config_data}")
 
 
     # Pass data and options to the template
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
-    print(f"Options passed to template: {options}")
-    print(f"Selected value passed to template: {selected_value}")
-    print(f"config_data: {config_data}")
+    app.logger.info(f"Options passed to template: {options}")
+    app.logger.info(f"Selected value passed to template: {selected_value}")
+    app.logger.info(f"config_data: {config_data}")
 
  
     return render_template('index.htm', data=config_data, options=options, selected_value=selected_value)
@@ -133,7 +132,7 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     write_json(config_file_path, config_data)
                
     led_color = (rval, gval, bval)
-    print("set_color", led_color)
+    app.logger.info(f"set_color {led_color}")
     myQueue.put((set_led, ((led_color),)))    
    
 def handle_on(on):
@@ -141,17 +140,17 @@ def handle_on(on):
     global state
     state['state']['on'] = on
     if on:
-        print("set power on")
+        app.logger.info("set power on")
         config_data = read_json(config_file_path)  # Read defaultColor from config.json
         led_color = config_data['defaultColor']
         myQueue.put((set_led, ((led_color),)))
     else:
-        print("set power off")
+        app.logger.info("set power off")
         myQueue.put((all_off, ()))
         
 def handle_bri(bri):
     global state
-    print(f'handle_bri({bri})')
+    app.logger.info(f'handle_bri({bri})')
     state['state']['bri'] = bri
 
     config_data = read_json(config_file_path)  #  Update seg0bri in config.json.  
@@ -161,7 +160,7 @@ def handle_bri(bri):
     myQueue.put((update_bri, (bri,)))
 
 def handle_effect(effect_id):
-    print(f'handle_effect({effect_id})')
+    app.logger.info(f'handle_effect({effect_id})')
     global state
     if(effect_id == 0):        #effect 0 is solid color
         state['state']['seg'][0]['fx'] = -1
@@ -176,7 +175,7 @@ def handle_playlist(playlist_id):
     global state
     state['state']['pl'] = int(playlist_id)
     state['state']['seg'][0]['fx'] = -1
-    print(f'handle_playlist({playlist_id})')
+    app.logger.info(f'handle_playlist({playlist_id})')
     myQueue.put((update_effect, (playlist_id,)))
 
 
@@ -221,7 +220,7 @@ def parse_eff():
 @app.route("/json/state", methods=["GET","POST"])
 def parse_state():
     try:
-        print("request", request)
+        app.logger.info(f"request {request}")
 
         # No JSON data - this is just an info request
         if not request.data:
@@ -237,7 +236,7 @@ def parse_state():
             "message": "JSON received successfully",
             "received_data": data
         }
-        print("data", data)
+        app.logger.info(f"data {data}")
 
         for key, value in data.items():
             match key:
@@ -251,7 +250,7 @@ def parse_state():
                             led = value['col']
                             set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
                         if 'fx' in value:
-                            print("data", data)
+                            app.logger.info(f"data {data}")
                             handle_effect(value['fx'])
                     elif isinstance(value, list):
                         for segment in value:
@@ -261,7 +260,7 @@ def parse_state():
                             if isinstance(segment, dict) and 'fx' in segment:
                                 handle_effect(segment['fx'])
                     else:
-                        print("Unexpected format for 'seg':", value)
+                        app.logger.info(f"Unexpected format for 'seg': {value}")
 
                     response = state
                 case 'effect':
@@ -273,13 +272,13 @@ def parse_state():
                 case 'time':
                     response = state  # Should we do anything with this?
                 case _:
-                    print("no match", key)
+                    app.logger.info(f"no match {key}")
 
         return jsonify(response), 200
         
     except Exception as e:
-        print("Exception", e)   
-        print(str(e))
+        app.logger.info(f"Exception {e}")
+        app.logger.info(str(e))
         breakpoint()
         return jsonify({"error": str(e)}), 500
     

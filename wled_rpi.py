@@ -9,9 +9,11 @@ import random
 # Check if rpi_ws281x is available
 rpi_ws281x_available = importlib.util.find_spec("rpi_ws281x") is not None
 
+from wled_web_server import myQueue, app
+
 if not rpi_ws281x_available:
-    LED_COLOR=0
-    print("WARNING - You are running in simulation mode - no hardware will be controlled.  Set simulate=False in config.py to run on hardware")
+    LED_COLOR = 0
+    app.logger.info("WARNING - You are running in simulation mode - no hardware will be controlled. Set simulate=False in config.py to run on hardware")
 
     class PixelStrip:
         def __init__(self, num, pin, freq_hz=800000, dma=10, invert=False, brightness=255, channel=0, strip_type=None):
@@ -26,10 +28,10 @@ if not rpi_ws281x_available:
             self.pixels = [(0, 0, 0)] * num
 
         def begin(self):
-            print("Simulated PixelStrip initialized")
+            app.logger.info("Simulated PixelStrip initialized")
 
         def show(self):
-            print("Simulated PixelStrip show")
+            app.logger.info("Simulated PixelStrip show")
 
         def setPixelColor(self, n, color):
             if n < self.num:
@@ -48,8 +50,6 @@ else:
     from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
 
 
-from wled_web_server import myQueue
-
 # empty variable declarations, to stop Python from complaining
 Theater = lambda x: x
 Rainbow = lambda x: x
@@ -65,6 +65,7 @@ seg0s = 0
 seg0e = 0
 seg1s = 0
 seg1e = 0
+individAddr = False
 
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
@@ -146,23 +147,28 @@ def Loading(strip, wait_ms=50, iterations=10):
     """
     Moves a sawtooth pattern along the strip.
     """
-    num_pixels = strip.numPixels()
-    pattern_length = 10  # Length of the sawtooth pattern
+  
+
+    if  individAddr:
+        pattern_length = 10
+    else:
+        pattern_length = 6  # Length of the sawtooth pattern
+
+
 
     for j in range(iterations):
-        for i in range(num_pixels):
+        for i in range(seg0s, seg0e):
             # Clear the strip
             strip.setPixelColor(i, Color(0, 0, 0))
 
-        for i in range(num_pixels):
             # Calculate brightness for each pixel in the sawtooth pattern
             for k in range(pattern_length):
-                if i + k < num_pixels:
+                if i + k < seg0e:
                     brightness = max(0, 255 - (255 * k // pattern_length))
-                    strip.setPixelColor(i + k, Color(brightness, 0, 0))
 
-            strip.show()
-            time.sleep(wait_ms / 1000.0)
+                strip.setPixelColor(i + k, Color(brightness, 0, 0))
+                strip.show()
+                time.sleep(wait_ms / 1000.0)
 
             if checkCancel():
                 return
@@ -171,7 +177,7 @@ def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=50, it
     """
     Simulates bouncing balls with gravity.
     """
-    num_pixels = strip.numPixels()
+
     positions = [0.0] * num_balls
     velocities = [0.0] * num_balls
     colors = [wheel(int(i * 256 / num_balls)) for i in range(num_balls)]
@@ -181,12 +187,12 @@ def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=50, it
             velocities[i] += gravity / 1000.0  # Simulate gravity
             positions[i] += velocities[i]
 
-            if positions[i] >= num_pixels - 1:  # Bounce off the end
-                positions[i] = num_pixels - 1
+            if positions[i] >= seg0e - 1:  # Bounce off the end
+                positions[i] = seg0e - 1
                 velocities[i] = -velocities[i] * 0.9  # Lose some energy on bounce
 
         if not overlay:
-            for j in range(num_pixels):
+            for j in range(seg0s, seg0e):  # Use global seg0s
                 strip.setPixelColor(j, Color(0, 0, 0))  # Clear the strip
 
         for i in range(num_balls):
@@ -203,7 +209,7 @@ def Fairy(strip, speed=50, num_flashers=10, iterations=100):
     Simulates twinkling lights inspired by Christmas lights.
     """
  
-    flashers = [random.randint(0, num_pixels - 1) for _ in range(num_flashers)]
+    flashers = [random.randint(0, seg0e - 1) for _ in range(num_flashers)]
     colors = [random.randint(0, 255) for _ in range(num_flashers)]  # Store color positions for the wheel
 
     for _ in range(iterations):
@@ -228,7 +234,7 @@ def Glitter(strip, speed=50, intensity=128, overlay=False, iterations=100):
     """
     Rainbow effect with white sparkles.
     """
-    num_pixels = strip.numPixels()
+    num_pixels = seg0e-seg0s  # Use global seg0s and seg0e
     for _ in range(iterations):
         for i in range(seg0s, seg0e):
             if not overlay:
@@ -251,14 +257,14 @@ def HalloweenEyes(strip, duration=5000, fade_time=500, overlay=False):
     """
     Simulates a pair of blinking eyes at random intervals along the strip.
     """
-    num_pixels = strip.numPixels()
+
     start_time = time.time()
     eye_color = Color(255, 0, 0)  # Red eyes
     bg_color = Color(0, 0, 0)  # Background color
 
     while (time.time() - start_time) * 1000 < duration:
         # Randomly select a position for the eyes
-        eye_position = random.randint(0, num_pixels - 2)
+        eye_position = random.randint(seg0s,  seg0e - 2)
         strip.setPixelColor(eye_position, eye_color)
         strip.setPixelColor(eye_position + 1, eye_color)
 
@@ -424,15 +430,15 @@ def run_effects(effect_id):
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
     if effect:
         function = effect['func']
-        print("Running effect", effect['Effect'], "with id", effect_id)
+        app.logger.debug(f"Running effect {effect['Effect']} with id {effect_id}")
 
         try:
             function(strip)
   
         except Exception as e:
-            print(e)
+            app.logger.info(e)
     else:
-        print("Effect with id", effect_id, "not found")
+        app.logger.info(f"Effect with id {effect_id} not found")
 
 def update_bri(bri_arg):
     strip.setBrightness(bri_arg)
@@ -445,7 +451,7 @@ def all_off():
     current_pl = -1
 
 
-    for i in range(0, strip.num_pixels):  # Use global seg0e
+    for i in range(0, strip.numPixels()):  # Use global seg0e
         strip.setPixelColor(i, Color(0, 0, 0))
     
     strip.show()
@@ -468,7 +474,7 @@ def update_effect(effect_id):
 
 def update_playlist(playlist_id):
     global current_effect, current_pl   
-    print("in update_playlist()", playlist_id)
+    app.logger.debug(f"in update_playlist() {playlist_id}")
     current_pl = playlist_id
     current_effect = -1
 
@@ -501,6 +507,16 @@ def init_rpi(config_data):
     seg1e = config_data.get('seg1e', 0)  # Default to 0 if not provided
     current_color = config_data.get('defaultColor', (0, 0, 255))  # Default to blue if not provided
 
+    individAddr =config_data['individAddress']
+
+    if not individAddr:
+
+        seg0s /=3
+        seg1s /=3
+        seg0e /=3
+        seg1e /=3
+
+
     
 
     # Calculate LED count as the maximum of seg0e and seg1e
@@ -510,20 +526,47 @@ def init_rpi(config_data):
     color_order = config_data.get('colorOrder', 'RGB')  # Default to 'RGB' if not specified
     LED_COLOR = color_order_map.get(color_order, WS2811_STRIP_RGB)  # Default to WS2811_STRIP_RGB if invalid
 
-    print("Initializing with LED count:", led_count, "and color order:", color_order)
+    app.logger.info(f"Initializing with LED count: {led_count} and color order: {color_order}")
 
     try:    
         strip = PixelStrip(led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR)
         strip.begin()
     
     except Exception as e: 
-        breakpoint()
-        print(e)
+        app.logger.info(e)
 
  
 def run_rpi_app():
     global current_effect
+
+
+    time.sleep(5)
+
+    app.logger.info(f"red ..")
+    for i in range(0, strip.numPixels()):
+        strip.setPixelColor(i, Color(255, 0, 0))
     strip.show()
+    time.sleep(1)
+
+    app.logger.info(f"green ..")
+    for i in range(0, strip.numPixels()):
+        strip.setPixelColor(i, Color(0, 255, 0))
+    strip.show()
+    time.sleep(1)
+
+    for i in range(0, strip.numPixels()):
+        strip.setPixelColor(i, Color(0, 0, 255))
+    strip.show()
+    time.sleep(1)
+
+    app.logger.info(f"blue")
+    for i in range(0, strip.numPixels()):
+        strip.setPixelColor(i, Color(0, 0, 0))
+    strip.show()
+    time.sleep(1)
+
+ 
+
     try:    
         while True:
             if not myQueue.empty():
@@ -538,8 +581,7 @@ def run_rpi_app():
 
 
     except Exception as e: 
-        breakpoint()
-        print(e)
+        app.logger.info(e)
         all_off()
 
 
