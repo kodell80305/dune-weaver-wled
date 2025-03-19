@@ -17,6 +17,7 @@ That's it, you're done as far as the software is concerned.  Wait until the serv
 
 If you want to actually see the LEDs you'll need to hook up the data from the LED to GPIO 18.
 
+
 ## If you're still here
 
 This code is designed to run with the amazing [Dune Weaver](https://github.com/tuanchris/dune-weaver) project.  The Dune Weaver project uses standalone WLED devices to control the lighting for the sand table.   The project uses a Raspberry Pi to control a CNC board (mks dlc32 running Fluidnc).   Since the Raspberry Pi Zero 2w is an essential part of the system, I've implemented WLED compatible software to replace the additional ESP32 device.  The commercial WLED devices are probably far less hassle and provide some needed level shifting/wiring simplification as well as many more features, so using these might be your best choice.   I was interested in having one less device that needs to be on my network and simplifying the overall hardware design, so I've implemented this software.
