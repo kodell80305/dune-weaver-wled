@@ -4,11 +4,26 @@
 There are really several ways you can try this out.   The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
 
 If you do this you could also modify your Dune Weaver WLED settings to point to your PC to get an idea of how it would look from the UI.  You won't really be controlling anything, but you'll get a chance to see if the software is worth trying.
-ng
-## II
-I would call this early beta software at this point, but I wanted to let people know that using it would be an option.   I've got some remaining work to debug the Javascript/HTML for the UI but that part is around 90% complete.  I should be able to work through the remaining javascript errors over the next couple of weeks. Configuration is done on the server side, but the UI doesn't seem to be submitting the updated data.  In the meantime, you can edit the config.json file that gets created.  The two things that needs to be configured are " 
 
-I may not be able to get changing color order weorking without restarting the service ... a little bit of a pain, but if eveyryone is using strips from the DW BOM, we can probably figure out 
+## This is early beta software
+
+I wanted to let people know that using it would be an option - if you're doing the wiring for your Dune Weaver Pro, it might we worthwhile including an extra ground and a GPIO 18 connection to your Raspberry PI.  I was hoping to include a section on wiring.  The Raspberry PI is driving a 5 volt data line with a 3 volt signal.  I haven't seen problems with this, but it makes me nervouse.
+
+You can try it out, either in simulation or running on the PI with no hardware connected just to get a glimpse of what it might look like.
+
+I've got some remaining work to debug the Javascript/HTML for the UI but that part is around 90% complete.  I should be able to work through the remaining javascript errors over the next couple of weeks. 
+
+Configuration is done on the server side but some of the data is not getting updated in the correct spot.  In the meantime, you can edit the config.json file that gets created. I'll put an explanation of the values at the end of this document
+
+Getting the behavior to match the real WLED will take some additional time, mostly to figure what is working/not working.  I need to make a version of he DW front end that sends the commands to a real WLED device as well as my sofware so I can compare strips side by side.   While there are relatively few commands being used from the software, the ability to do playlists and presets means that the real device can do pretty much anything in response to an event.  
+
+My plan for handling playlists/presets is to use a (very, very small)  list of pre-defined behaviors that seem appropriate for whatever event has been triggered.   Trying to extract code from WLED would be difficult, but there are other resources like FastLED that are easier to borrow code from.  Anyone is welcome to take the code and implement what they want to see, and I can't see spending a lot of time just to save someone $20 on the real controller.  
+
+I'm a little out of loop with how the DW software is using the WLED product ... there's been so much development done in the last month or so that I can't keep up.  Hopefully now that the DW pro is release things will calm down (at least things that might change what this software needs to do.
+
+So there is work to be done - but nothing particularly difficult.   I don't want to make this a full time job, but I'm willing to commit to a few hours a day for a while.  I'm retired, but I've got several other projects I'm eager to work on.  Any help is welcome.
+  
+I may not be able to get changing color order working without restarting the service ... a little bit of a pain, but if eveyryone is using strips from the DW BOM, we can probably figure out the more popular strips and I can document it here. 
 
 ## The really short introduction
 
@@ -121,6 +136,41 @@ python test_led_controller.py
 ```
 All the test cases pass, where pass they all do something.   I need to run these against a real controller and compare the behavior.   There are definately things that don't act quite the same.    The UI still has some issues ... my javascript and html is about 30 years out of date.   
 
+## config.json parameters
+
+Sample configuration is:
+
+{
+  "colorOrder": "GRB",
+  "duration": 7,
+  "seg0s": 0,
+  "seg0e": 130,
+  "seg0bri": 128,
+  "seg0pwr": true,
+  "seg1s": 0,
+  "seg1e": 10,
+  "seg1bri": 128,
+  "seg1pwr": true,
+  "timer": 0,
+  "effect": "",
+  "defaultColor": [
+    0,
+    34,
+    255
+  ],
+  "individAddress": true
+}
+
+colorOrder - one of six values RGB, RBG, GRB, GBR, BRG, BGR   I'll flash what is supposed to be a Red/Green/Blue sequence.  If you don't know the color order, it will be some trial and error to figure this one out.   This doesn't get updated unless the service restarts.
+
+seg0s and seg0e are the starting and ending LED's for the strip around the table.  seg0bri and segPwr are mostly for the system to remember the last settings after a restart.
+seg1s and seg1e are starting/ending LEDS reservered but an under the table light (e.g. I use the bottom of the Omnobod as a display case).   You'll be able to control on/off/brightness for this, and I may put a time-of-day scheduling in, but it's mostly for future use.  It will respond to the brightness and on/off settings, but no effects or other control.
+
+ Use the actual number of LED's for.  If you have a strip with individually addressable LED's, set "individAddress" to true.   If you can only control blocks of three, set this to false.   I've mostly tested with an individually addressable strip, so many of the effects are completely broken for the non-individually addressable case. 
+ 
+timer doesn't do anything right now.  But it will
+
+So set seg0s, seg0e and colorOrder and ignore the rest for now.  seg0bri, seg0pwr, defaultColor are used to store whatever you did last ... after a reboot/restart, system should restore itself to it's previous state (except for power?)
 
 
 
