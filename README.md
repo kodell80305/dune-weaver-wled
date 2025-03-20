@@ -1,9 +1,14 @@
 # dune-weaver-wled
 
 ##
-There are really several ways you can try this out.  The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
+There are really several ways you can try this out.   The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
 
 If you do this you could also modify your Dune Weaver WLED settings to point to your PC to get an idea of how it would look from the UI.  You won't really be controlling anything, but you'll get a chance to see if the software is worth trying.
+ng
+## II
+I would call this early beta software at this point, but I wanted to let people know that using it would be an option.   I've got some remaining work to debug the Javascript/HTML for the UI but that part is around 90% complete.  I should be able to work through the remaining javascript errors over the next couple of weeks. Configuration is done on the server side, but the UI doesn't seem to be submitting the updated data.  In the meantime, you can edit the config.json file that gets created.  The two things that needs to be configured are " 
+
+I may not be able to get changing color order weorking without restarting the service ... a little bit of a pain, but if eveyryone is using strips from the DW BOM, we can probably figure out 
 
 ## The really short introduction
 
