@@ -5,6 +5,8 @@ import threading
 import requests
 import json
 from queue import Queue
+import atexit
+from wled_rpi import cleanup_leds
 
 from flask import Flask, send_from_directory, request, jsonify, render_template
 
@@ -84,19 +86,10 @@ app = Flask(__name__, static_folder='static')
 
 @app.route('/', methods=["GET", "POST"])
 def index():
-    # Options for the select box
-
-    options =  ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
-    config_data = read_json(config_file_path)
-
-    
-    config_data['effect'] = get_effects_js()
- 
-
-   
-
     # Handle POST request to update the values
     if request.method == 'POST':
+        config_data = read_json(config_file_path)
+        app.logger.info(f"POST request: {request.form}")
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
         config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
         config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
@@ -104,18 +97,24 @@ def index():
         config_data['seg1s'] = request.form.get('seg1s', config_data['seg1s'])
         config_data['seg1e'] = request.form.get('seg1e', config_data['seg1e'])
         config_data['seg1bri'] = request.form.get('seg1bri', config_data['seg1bri'])
-        config_data['individAddress'] = request.form.get('individAddress', config_data['individAddress'])
-        config_data['timer'] = request.form.get('timer', config_data['timer'])
-        config_data['effect'] = get_effects_js();
-        app.logger.info(f"Updated settings: {config_data}")
+        config_data['individAddress'] = request.form.get('individAddressHidden', config_data['individAddress'])
+        config_data['duration'] = request.form.get('duration', config_data['duration'])
+        config_data['effect'] = get_effects_js()
+        write_json(config_file_path, config_data)
+        app.logger.info(f"Updated config: {config_data}")
 
 
-    # Pass data and options to the template
+    options =  ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
+    config_data = read_json(config_file_path)
+    config_data['effect'] = get_effects_js()
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
-    app.logger.info(f"Options passed to template: {options}")
-    app.logger.info(f"Selected value passed to template: {selected_value}")
+    
+    # Pass data and options to the template
+    app.logger.info(render_template('index.htm', data=config_data, options=options, selected_value=selected_value))
+
     app.logger.info(f"config_data: {config_data}")
 
+  
  
     return render_template('index.htm', data=config_data, options=options, selected_value=selected_value)
 
@@ -299,11 +298,18 @@ def run_flask_app():
     app.run(host="0.0.0.0", port=80)
 
 
+#Main entry point for the WLED Raspberry Pi application.  Assume the order is important, for reasons.   This is
+#called from app.py
 
 def start_flask():
+    # Register the cleanup function to be called on exit
+    atexit.register(cleanup_leds)
+
     flask_thread = threading.Thread(target=run_flask_app)
     flask_thread.daemon = True  # Allow the main thread to exit even if the Flask thread is running
     flask_thread.start()
+
+
 
 
 

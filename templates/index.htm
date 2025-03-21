@@ -276,15 +276,19 @@
 		</select>
 		<br>
 		<br>
-		<label>
-			<input type="checkbox" name="individuallyAddressable" 
-				   {% if data.individAddress %}checked{% endif %}>
+		<label for="individAddress">
+			<input type="checkbox" name="individAddress" id="individAddress" 
+				{% if data.individAddress == 'True' %}
+				   	checked
+				{% endif %}
+				   onchange="updateIndividAddressHidden()">
 			Individually Addressable
 		</label>
+		<input type="hidden" name="individAddressHidden" id="individAddressHidden" value="{{data.individAddress}}">
 		<br>
 		<br>
-		<label for="TL">Default timer:</label>
-		<input name="TL" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
+		<label for="duration">Default timer:</label>
+		<input name="duration" type="number" class="m" min="1" max="255" value="{{ data.duration }}">
 		min<br>
 
 
@@ -319,6 +323,19 @@
 			<button type="submit" class="btn btn-s" onclick="handleSaveButtonClick()">Save</button>
 		</div>
 		<script>
+
+		var configData = [
+			['seg0s', {{ data.seg0s }} ],
+			['seg0e', {{  data.seg0e }} ] ,
+			['seg1s', {{ data.seg1s }} ],
+			['seg1e', {{ data.seg1e  }} ],
+			['seg0bri', {{ data.seg0bri }} ],
+			['seg1bri', {{ data.seg1bri }} ]
+		];
+
+
+ 			{{ data.effect|safe  }}
+
 			// Populate hidden inputs dynamically from configData
 			configData.forEach(([key, value]) => {
 				const input = document.createElement('input');
@@ -358,6 +375,12 @@
 				alert('Save button clicked! Calling updateHiddenInputs');
 				updateHiddenInputs(); // Update hidden inputs with the latest values
 				document.getElementById('form_s').submit(); // Submit the form programmatically
+			}
+
+			function updateIndividAddressHidden() {
+				const checkbox = document.getElementById('individAddress');
+				const hiddenInput = document.getElementById('individAddressHidden');
+				hiddenInput.value = checkbox.checked ? 'True' : 'False';
 			}
 		</script>
 	</form>
@@ -449,25 +472,13 @@ control and a Raspberry Pi Zero 2w Python/Flask-based web interface for the user
 
 <i id="roverstar" class="icons huge" onclick="setLor(0)">&#xe410;</i><br>
 
+
 <!-- 
 	If you want to load iro.js and {{ url_for('static', filename='js/rangetouch.js') }} as consecutive requests, you can do it like it was done in 0.14.0:
-	https://github.com/wled-dev/WLED/blob/v0.14.0/wled00/data/index.htm
+	https://github.com/wled-dev/WLED/blob/v0.14.0/wled00/data/index. 
 -->
 <script src="{{ url_for('static', filename='js/iro.js') }}"></script>
 <script src="{{ url_for('static', filename='js/rangetouch.js') }}"></script>
-<script>
-    var configData = [
-		['seg0s', {{ data.seg0s }} ],
-        ['seg0e', {{  data.seg0e }} ] ,
-        ['seg1s', {{ data.seg1s }} ],
-        ['seg1e', {{ data.seg1e  }} ],
-        ['seg0bri', {{ data.seg0bri }} ],
-        ['seg1bri', {{ data.seg1bri }} ]
-];
-
-
-  {{ data.effect|safe  }}
-</script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

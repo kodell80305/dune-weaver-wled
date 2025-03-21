@@ -6,10 +6,11 @@ import importlib
 import json
 import random
 
+
 # Check if rpi_ws281x is available
 rpi_ws281x_available = importlib.util.find_spec("rpi_ws281x") is not None
 
-from wled_web_server import myQueue, app
+
 
 if not rpi_ws281x_available:
     LED_COLOR = 0
@@ -46,7 +47,6 @@ if not rpi_ws281x_available:
     def Color(red, green, blue):
         return (red, green, blue)
 else:
-    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
     from rpi_ws281x import PixelStrip, Color  # Import only the necessary components
 
 
@@ -421,15 +421,18 @@ def get_effects_js():
 #a command like setting the led brightness, then we'll restart the pattern.   Any other command
 #will set a different effect to run.  
 def checkCancel():
+    from wled_web_server import myQueue
 
     if not myQueue.empty():
         return True
     return False    
 
 def run_effects(effect_id):
+    from flask import app as app
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
     if effect:
         function = effect['func']
+        from flask import app as app
         app.logger.debug(f"Running effect {effect['Effect']} with id {effect_id}")
 
         try:
@@ -473,6 +476,7 @@ def update_effect(effect_id):
 
 
 def update_playlist(playlist_id):
+    from flask import app as app
     global current_effect, current_pl   
     app.logger.debug(f"in update_playlist() {playlist_id}")
     current_pl = playlist_id
@@ -489,6 +493,7 @@ LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 def init_rpi(config_data):
     global strip, seg0s, seg0e, seg1s, seg1e
+    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
 
     # Map colorOrder values to corresponding WS2811_STRIP constants
     color_order_map = {
@@ -507,37 +512,39 @@ def init_rpi(config_data):
     seg1e = config_data.get('seg1e', 0)  # Default to 0 if not provided
     current_color = config_data.get('defaultColor', (0, 0, 255))  # Default to blue if not provided
 
-    individAddr =config_data['individAddress']
+    individAddr = config_data['individAddress']
 
     if not individAddr:
-
-        seg0s /=3
-        seg1s /=3
-        seg0e /=3
-        seg1e /=3
-
-
-    
+        seg0s //= 3
+        seg1s //= 3
+        seg0e //= 3
+        seg1e //= 3
 
     # Calculate LED count as the maximum of seg0e and seg1e
-    led_count = max(seg0e, seg1e)
+    led_count = int(max(seg0e, seg1e))  # Explicitly cast to integer
 
     # Set LED_COLOR based on colorOrder in config_data
     color_order = config_data.get('colorOrder', 'RGB')  # Default to 'RGB' if not specified
     LED_COLOR = color_order_map.get(color_order, WS2811_STRIP_RGB)  # Default to WS2811_STRIP_RGB if invalid
 
-    app.logger.info(f"Initializing with LED count: {led_count} and color order: {color_order}")
+    print(f"{type(led_count)} {type(LED_PIN)} {type(LED_FREQ_HZ)} {type(LED_DMA)} {type(LED_INVERT)} {type(LED_CHANNEL)} {type(LED_COLOR)}")
+    print(f"Initializing with LED count: {led_count} and color order: {color_order}")
+ 
 
-    try:    
+    try:
         strip = PixelStrip(led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, LED_COLOR)
         strip.begin()
-    
-    except Exception as e: 
-        app.logger.info(e)
+    except Exception as e:
+        #doesn't exist yet
+        #app.logger.info(e)
+        print(e)
 
  
 def run_rpi_app():
     global current_effect
+    from wled_web_server import myQueue, app 
+
+
 
 
     time.sleep(5)
@@ -583,6 +590,21 @@ def run_rpi_app():
     except Exception as e: 
         app.logger.info(e)
         all_off()
+
+def cleanup_leds():
+    """
+    Cleans up the LED strip by turning off all LEDs and releasing resources.
+    """
+    global strip
+
+    if strip:
+        app.logger.info("Cleaning up LED strip...")
+        # Turn off all LEDs
+        for i in range(0, strip.numPixels()):
+            strip.setPixelColor(i, Color(0, 0, 0))
+        strip.show()
+        # Release the strip object
+        strip = None
 
 
 
