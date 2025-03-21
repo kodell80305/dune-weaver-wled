@@ -7,7 +7,12 @@ If you do this you could also modify your Dune Weaver WLED settings to point to 
 
 ## This is early beta software
 
-I wanted to let people know that using it would be an option - if you're doing the wiring for your Dune Weaver Pro, it might we worthwhile including an extra ground and a GPIO 18 connection to your Raspberry PI.  I was hoping to include a section on wiring.  The Raspberry PI is driving a 5 volt data line with a 3 volt signal.  I haven't seen problems with this, but it makes me nervouse.
+Configuration should work correctly for the settings of color order (if this changes, strip should flash red-green-blue, so you can try the different settings until the colors are correct).   Changing the Table LED/Cabinet LED from the GUI doesn't work, so you'll need to edit the config.json file directly.   seg0s is the start of the table led's and seg0e is the end.  seg1s and sesg1e are for and additional segment that will be a constant white setting (but respond to the power/brightness command).  I'm using this as a display light underneath the Omnobod table.
+
+I realized that the way I was handling the non-individually addressable leds in patterns needs some work, so I'm planning on focussing on the individually addressable case first.
+
+I wanted to let people know that using it would be an option - if you're doing the wiring for your Dune Weaver Pro, it might we worthwhile including an extra ground and a GPIO 18 connection to your Raspberry PI.  I was hoping to include a section on wiring.  The Raspberry PI is driving a 5 volt data line with a 3 volt signal.  I haven't seen problems with this, but it makes me nervous.
+
 
 You can try it out, either in simulation or running on the PI with no hardware connected just to get a glimpse of what it might look like.
 
@@ -23,7 +28,7 @@ I'm a little out of loop with how the DW software is using the WLED product ... 
 
 So there is work to be done - but nothing particularly difficult.   I don't want to make this a full time job, but I'm willing to commit to a few hours a day for a while.  I'm retired, but I've got several other projects I'm eager to work on.  Any help is welcome.
   
-I may not be able to get changing color order working without restarting the service ... a little bit of a pain, but if eveyryone is using strips from the DW BOM, we can probably figure out the more popular strips and I can document it here. 
+
 
 ## The really short introduction
 
