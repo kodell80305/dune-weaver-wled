@@ -421,18 +421,18 @@ def get_effects_js():
 #a command like setting the led brightness, then we'll restart the pattern.   Any other command
 #will set a different effect to run.  
 def checkCancel():
-    from wled_web_server import myQueue
+    from wled_web_server import myQueue, app
 
     if not myQueue.empty():
         return True
     return False    
 
 def run_effects(effect_id):
-    from flask import app as app
+
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
     if effect:
         function = effect['func']
-        from flask import app as app
+
         app.logger.debug(f"Running effect {effect['Effect']} with id {effect_id}")
 
         try:
@@ -476,7 +476,7 @@ def update_effect(effect_id):
 
 
 def update_playlist(playlist_id):
-    from flask import app as app
+    from wled_web_server import app as app
     global current_effect, current_pl   
     app.logger.debug(f"in update_playlist() {playlist_id}")
     current_pl = playlist_id
@@ -491,19 +491,25 @@ LED_DMA = 10          # DMA channel to use for generating signal (try 10)
 LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
+
+from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
+
+# Map colorOrder values to corresponding WS2811_STRIP constants
+color_order_map = {
+    'RGB': WS2811_STRIP_RGB,
+    'RBG': WS2811_STRIP_RBG,
+    'GRB': WS2811_STRIP_GRB,
+    'GBR': WS2811_STRIP_GBR,
+    'BRG': WS2811_STRIP_BRG,
+    'BGR': WS2811_STRIP_BGR
+     }
+
+# Add a global variable to store the current LED_COLOR
+current_led_color = None
+
 def init_rpi(config_data):
     global strip, seg0s, seg0e, seg1s, seg1e
-    from rpi_ws281x import WS2811_STRIP_RGB, WS2811_STRIP_RBG, WS2811_STRIP_GRB, WS2811_STRIP_GBR, WS2811_STRIP_BRG, WS2811_STRIP_BGR
-
-    # Map colorOrder values to corresponding WS2811_STRIP constants
-    color_order_map = {
-        'RGB': WS2811_STRIP_RGB,
-        'RBG': WS2811_STRIP_RBG,
-        'GRB': WS2811_STRIP_GRB,
-        'GBR': WS2811_STRIP_GBR,
-        'BRG': WS2811_STRIP_BRG,
-        'BGR': WS2811_STRIP_BGR
-    }
+  
 
     # Save segment values in global variables
     seg0s = config_data['seg0s']
@@ -539,13 +545,8 @@ def init_rpi(config_data):
         #app.logger.info(e)
         print(e)
 
- 
-def run_rpi_app():
-    global current_effect
-    from wled_web_server import myQueue, app 
-
-
-
+def display_color():
+    from wled_web_server import app as app
 
     time.sleep(5)
 
@@ -572,7 +573,60 @@ def run_rpi_app():
     strip.show()
     time.sleep(1)
 
- 
+
+def update_segments(new_config_data):
+    """
+    Updates segment values and reinitializes the LED strip if necessary.
+    """
+    global seg0s, seg0e, seg1s, seg1e, strip, individAddr, current_led_color
+    from wled_web_server import app as app
+
+    # Check if any segment values have changed
+    seg_changed = (
+        seg0s != new_config_data['seg0s'] or
+        seg0e != new_config_data['seg0e'] or
+        seg1s != new_config_data.get('seg1s', 0) or
+        seg1e != new_config_data.get('seg1e', 0)
+    )
+
+    # Update segment values
+    seg0s = new_config_data['seg0s']
+    seg0e = new_config_data['seg0e']
+    seg1s = new_config_data.get('seg1s', 0)
+    seg1e = new_config_data.get('seg1e', 0)
+    individAddr = new_config_data['individAddress']
+
+    # Adjust segments if not individually addressable
+    if not individAddr:
+        seg0s //= 3
+        seg1s //= 3
+        seg0e //= 3
+        seg1e //= 3
+
+    # Calculate new LED count and LED color
+    new_led_count = int(max(seg0e, seg1e))
+    new_color_order = new_config_data.get('colorOrder', 'RGB')
+    new_LED_COLOR = color_order_map.get(new_color_order, WS2811_STRIP_RGB)
+
+    # Reinitialize the LED strip only if led_count or LED_COLOR has changed
+    if strip is None or new_led_count != strip.numPixels() or new_LED_COLOR != current_led_color:
+        try:
+            strip = PixelStrip(new_led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, new_LED_COLOR)
+            strip.begin()
+            current_led_color = new_LED_COLOR  # Update the stored LED_COLOR
+            app.logger.info("LED strip reinitialized due to configuration changes.")
+            display_color()
+        except Exception as e:
+            app.logger.error("Failed to reinitialize LED strip.")
+            print(e)
+
+
+def run_rpi_app():
+    global current_effect
+    from wled_web_server import myQueue, app 
+
+    display_color(  )
+
 
     try:    
         while True:
@@ -598,7 +652,6 @@ def cleanup_leds():
     global strip
 
     if strip:
-        app.logger.info("Cleaning up LED strip...")
         # Turn off all LEDs
         for i in range(0, strip.numPixels()):
             strip.setPixelColor(i, Color(0, 0, 0))

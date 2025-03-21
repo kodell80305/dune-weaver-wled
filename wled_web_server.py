@@ -6,7 +6,7 @@ import requests
 import json
 from queue import Queue
 import atexit
-from wled_rpi import cleanup_leds
+from wled_rpi import cleanup_leds, update_segments
 
 from flask import Flask, send_from_directory, request, jsonify, render_template
 
@@ -89,7 +89,7 @@ def index():
     # Handle POST request to update the values
     if request.method == 'POST':
         config_data = read_json(config_file_path)
-        app.logger.info(f"POST request: {request.form}")
+        #app.logger.info(f"POST request: {request.form}")
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
         config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
         config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
@@ -100,17 +100,19 @@ def index():
         config_data['individAddress'] = request.form.get('individAddressHidden', config_data['individAddress'])
         config_data['duration'] = request.form.get('duration', config_data['duration'])
         config_data['effect'] = get_effects_js()
-        write_json(config_file_path, config_data)
         app.logger.info(f"Updated config: {config_data}")
+        write_json(config_file_path, config_data)
+        update_segments(config_data)
+  
 
 
     options =  ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
     config_data = read_json(config_file_path)
     config_data['effect'] = get_effects_js()
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
-    
+
     # Pass data and options to the template
-    app.logger.info(render_template('index.htm', data=config_data, options=options, selected_value=selected_value))
+    #app.logger.info(render_template('index.htm', data=config_data, options=options, selected_value=selected_value))
 
     app.logger.info(f"config_data: {config_data}")
 
