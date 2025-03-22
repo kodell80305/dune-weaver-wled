@@ -7,14 +7,11 @@ import json
 from queue import Queue
 import atexit
 from wled_rpi import cleanup_leds, update_segments
+from shared_resources import myQueue, app  # Import shared resources
 
 from flask import Flask, send_from_directory, request, jsonify, render_template
 
-myQueue = Queue()
-
 state = '{"state" : {"on":true,"bri":128,"transition":7,"ps":-1,"pl":-1,"nl":{"on":false,"dur":60,"fade":true,"tbri":0},"udpn":{"send":false,"recv":true},"seg":[{"start":0,"stop":20,"len":20,"col":[[255,160,0,0],[0,0,0,0],[0,0,0,0]],"fx":0,"sx":127,"ix":127,"pal":0,"sel":true,"rev":false,"cln":-1}]}}'
-
-app = Flask(__name__, static_folder='static')
 
 
 # Define the path to the config file
@@ -81,7 +78,6 @@ state = json.loads(si_data)
 
 from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect,  get_effects_js
 
-app = Flask(__name__, static_folder='static')
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -144,6 +140,7 @@ def handle_on(on):
         app.logger.info("set power on")
         config_data = read_json(config_file_path)  # Read defaultColor from config.json
         led_color = config_data['defaultColor']
+        app.logger.info(f"led_color {led_color}")
         myQueue.put((set_led, ((led_color),)))
     else:
         app.logger.info("set power off")
@@ -249,7 +246,9 @@ def parse_state():
                     if isinstance(value, dict):
                         if 'col' in value:
                             led = value['col']
-                            set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
+                            # Validate that led[0] is not empty
+                            if len(led) > 0 and len(led[0]) >= 3:
+                                set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
                         if 'fx' in value:
                             app.logger.info(f"data {data}")
                             handle_effect(value['fx'])
@@ -257,7 +256,9 @@ def parse_state():
                         for segment in value:
                             if isinstance(segment, dict) and 'col' in segment:
                                 led = segment['col']
-                                set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
+                                # Validate that led[0] is not empty
+                                if len(led) > 0 and len(led[0]) >= 3:
+                                    set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
                             if isinstance(segment, dict) and 'fx' in segment:
                                 handle_effect(segment['fx'])
                     else:
@@ -295,7 +296,7 @@ def run_flask_app():
 
     #socketio = SocketIO(app)
     #socketio.run(app)
-    app.logger.setLevel(logging.INFO)  # Set the logging level to INFO or lower
+    app.logger.setLevel(logging.DEBUG)  # Set the logging level to INFO or lower
     app.logger.info("This will be logged if the level is set correctly")
     app.run(host="0.0.0.0", port=80)
 
