@@ -679,8 +679,9 @@ function populatePresets(fromls)
 	{
 		if (!isObj(key[1])) continue;
 		let i = parseInt(key[0]);
-		if (i == lowestUnused) lowestUnused = i+1;
-		if (i > lSeg) lSeg = i;
+		var qll = key[1].ql;
+		if (qll) pQL.push([i, qll, pName(i)]);
+		is.push(i);
 
 		cn += `<div class="pres lstI" id="p${i}o">`;
 		if (cfg.comp.pid) cn += `<div class="pid">${i}</div>`;
@@ -706,7 +707,6 @@ function populatePresets(fromls)
 }
 
 function parseInfo(i) {
-
 	lastinfo = i;
 	var name = i.name;
 	gId('namelabel').innerHTML = name;
@@ -722,6 +722,7 @@ function parseInfo(i) {
 	maxSeg       = i.leds.maxseg;
 	pmt          = i.fs.pmt;
 	if (pcMode && !i.wifi.ap) gId('edit').classList.remove("hide"); else gId('edit').classList.add("hide");
+	gId('buttonNodes').style.display = lastinfo.ndc > 0 ? null:"none";
 	// do we have a matrix set-up
 	mw = i.leds.matrix ? i.leds.matrix.w : 0;
 	mh = i.leds.matrix ? i.leds.matrix.h : 0;
@@ -775,7 +776,6 @@ function populateInfo(i)
 
 function populateSegments(s)
 {
-	return;
 	// Extract values from configData
 	const configMap = new Map(configData);
 	const seg0s = configMap.get('seg0s') || 0;
@@ -2226,7 +2226,7 @@ function selSegAll(o)
 function selSegEx(s)
 {
 	var obj = {"seg":[]};
-	for (let i=0; i<=lSeg; i++) if (gId(`seg${i}`)) obj.seg.push({"id":(i==s)});
+	for (let i=0; i<=lSeg; i++) if (gId(`seg${i}`)) obj.seg.push({"id":i,"sel":(i==s)});
 	obj.mainseg = s;
 	requestJson(obj);
 }
@@ -3370,61 +3370,3 @@ _C.addEventListener('touchstart', lock, false);
 _C.addEventListener('mouseout', move, false);
 _C.addEventListener('mouseup', move, false);
 _C.addEventListener('touchend', move, false);
-
-document.addEventListener("DOMContentLoaded", () => {
-	// ...existing code...
-
-	// Ensure the "Config" button exists before adding an event listener
-	const configToggleBtn = document.getElementById("configToggleBtn");
-	const configSection = document.getElementById("config");
-
-	if (configToggleBtn) {
-		configToggleBtn.addEventListener("click", () => {
-			if (configSection.style.display === "none") {
-				configSection.style.display = "block";
-			} else {
-				configSection.style.display = "none";
-			}
-		});
-	}
-
-	// Remove the functionality of the top "Config" button
-	const topConfigButton = document.getElementById("configToggleBtn");
-	if (topConfigButton) {
-		topConfigButton.style.display = "none";
-	}
-
-	// Add functionality to the bottom "Config" button
-	const bottomConfigButton = document.getElementById("bottomConfigButton");
-	const configTab = document.getElementById("config");
-
-	if (bottomConfigButton) {
-		bottomConfigButton.addEventListener("click", () => {
-			if (configTab.style.display === "none" || configTab.style.display === "") {
-				configTab.style.display = "block";
-			} else {
-				configTab.style.display = "none";
-			}
-		});
-	}
-
-	// Add functionality to the "Config" button to behave like tabcontent buttons
-	const configTabButton = document.getElementById("configTabButton");
-	//const configTab = document.getElementById("config");
-
-	if (configTabButton) {
-		configTabButton.addEventListener("click", () => {
-			const tablinks = document.getElementsByClassName("tablinks");
-			for (let i = 0; i < tablinks.length; i++) {
-				tablinks[i].classList.remove("active");
-			}
-			configTabButton.classList.add("active");
-
-			const tabcontents = document.getElementsByClassName("tabcontent");
-			for (let i = 0; i < tabcontents.length; i++) {
-				tabcontents[i].style.display = "none";
-			}
-			configTab.style.display = "block";
-		});
-	}
-});

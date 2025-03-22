@@ -24,8 +24,8 @@
 			<button id="buttonSync" onclick=" toggleSync()" hidden><i class="icons">&#xe116;</i><p class="tab-label">Sync</p></button>
 			<button id="buttonSr" onclick=" toggleLiveview()" hidden><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 			<button id="buttonI" onclick="toggleInfo()"><i class="icons">&#xe066;</i><p class="tab-label">Info</p></button>
-			<button id="configToggleBtn2" onclick=" toggleNodes()" hidden><i class="icons">&#xe22d;</i><p class="tab-label">Nodes</p></button>
-			<button  onclick="window.location.href=getURL('/settings');" hidden><i class="icons">&#xe0a2;</i><p class="tab-label">Config</p></button>
+			<button id="buttonNodes" onclick=" toggleNodes()" hidden><i class="icons">&#xe22d;</i><p class="tab-label">Nodes</p></button>
+			<button onclick="window.location.href=getURL('/settings');" hidden><i class="icons">&#xe0a2;</i><p class="tab-label">Config</p></button>
 			<button id="buttonPcm" onclick="togglePcMode(true)"><i class="icons">&#xe23d;</i><p class="tab-label">PC Mode</p></button>
 		</div>
 		<div id="briwrap">
@@ -261,6 +261,7 @@
 		<form id="form_s" name="Sf" method="post">
 
 		<div id="segcont">
+			Loading...bbbb
 		</div>
 		<div id="segutil" class="staybot" hidden style="display:none">
 	
@@ -291,19 +292,8 @@
 		min<br>
 
 
-		
-				<h3>Table LEDs</h3>
-				<label for="seg0s">Start LED:</label>
-				<input type="number" id="seg0s" name="seg0s" min="0" value="{{ data.seg0s }}">
-				<label for="seg0e">Stop LED:</label>
-				<input type="number" id="seg0e" name="seg0e" min="0" value="{{ data.seg0e }}">
-	
-				<h3>Cabinet Light</h3>
-				<label for="seg1s">Start LED:</label>
-				<input type="number" id="seg1s" name="seg1s" min="0" value="{{ data.seg1s }}">
-				<label for="seg1e">Stop LED:</label>
-				<input type="number" id="seg1e" name="seg1e" min="0" value="{{ data.seg1e }}">
-
+		<br>
+		<br>
 
 		<p> <input id="tt" type="number" min="0" max="65.5" step="0.1" value="0.7" onchange="parseFloat(this.value)===0?gId('bsp').classList.add('hide'):gId('bsp').classList.remove('hide');" hidden>&nbsp;</p>
 		<p id="bsp">Blend:
@@ -392,18 +382,6 @@
 				const hiddenInput = document.getElementById('individAddressHidden');
 				hiddenInput.value = checkbox.checked ? 'True' : 'False';
 			}
-
-			document.addEventListener("DOMContentLoaded", () => {
-				// ...existing code...
-
-				// Initialize seg0s, seg0e, seg1s, and seg1e fields
-				//if (data.seg0s !== undefined) document.getElementById("seg0s").value = {{ data.seg0s }};
-				//if (data.seg0e !== undefined) document.getElementById("seg0e").value = {{ data.seg0e }}
-				//if (data.seg1s !== undefined) document.getElementById("seg1s").value = {{ data.seg1s }}; 
-				//if (data.seg1e !== undefined) document.getElementById("seg1e").value = {{ data.seg1e }};
-
-				// ...existing code...
-			});
 		</script>
 	</form>
 		<p id="ledmap" class="hide"></p>
@@ -423,8 +401,6 @@
 		</div>
 	</div>
 </div>
-
-
 
 <div class="tab bot" id="bot">
 	<button class="tablinks" onclick="openTab(0)"><i class="icons">&#xe2b3;</i><p class="tab-label">Colors</p></button>

@@ -625,9 +625,6 @@ def run_rpi_app():
     global current_effect
     from wled_web_server import myQueue, app 
 
-    display_color(  )
-
-
     try:    
         while True:
             if not myQueue.empty():
