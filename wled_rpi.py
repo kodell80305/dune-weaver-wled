@@ -433,9 +433,6 @@ def run_effects(effect_id):
     effect = next((effect for effect in effects_list if effect.get('ID') == str(effect_id)), None)
     if effect:
         function = effect['func']
-
-        app.logger.debug(f"Running effect {effect['Effect']} with id {effect_id}")
-
         try:
             function(strip)
   
@@ -622,6 +619,47 @@ def update_segments(new_config_data):
         except Exception as e:
             app.logger.error("Failed to reinitialize LED strip.")
             print(e)
+
+    # Parse and validate new segment values
+    new_seg0s = int(new_config_data.get('seg0s', 0))
+    new_seg0e = int(new_config_data.get('seg0e', 0))
+    new_seg1s = int(new_config_data.get('seg1s', 0))
+    new_seg1e = int(new_config_data.get('seg1e', 0))
+
+    # Ensure segments do not overlap
+    if not (new_seg0e <= new_seg1s or new_seg1e <= new_seg0s):
+        app.logger.error("Segments overlap. Please ensure seg0 and seg1 do not overlap.")
+        return
+
+    # Ensure valid segment ranges
+    if new_seg0s >= new_seg0e or new_seg1s >= new_seg1e:
+        app.logger.error("Invalid segment ranges. Start must be less than end.")
+        return
+
+    # Calculate the overall start and end LEDs
+    overall_start = min(new_seg0s, new_seg1s)
+    overall_end = max(new_seg0e, new_seg1e)
+
+    # Check if the maximum number of LEDs has changed
+    new_led_count = overall_end - overall_start
+    if strip is None or new_led_count != strip.numPixels():
+        try:
+            strip = PixelStrip(new_led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, current_led_color)
+            strip.begin()
+            app.logger.info(f"LED strip reinitialized with {new_led_count} LEDs.")
+        except Exception as e:
+            app.logger.error(f"Failed to reinitialize LED strip: {e}")
+
+    # Update global segment values
+    seg0s, seg0e, seg1s, seg1e = new_seg0s, new_seg0e, new_seg1s, new_seg1e
+    individAddr = new_config_data['individAddress']
+
+    # Adjust segments if not individually addressable
+    if not individAddr:
+        seg0s //= 3
+        seg1s //= 3
+        seg0e //= 3
+        seg1e //= 3
 
 def run_rpi_app():
     global current_effect

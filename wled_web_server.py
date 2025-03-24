@@ -82,6 +82,8 @@ from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect,  
 
 @app.route('/', methods=["GET", "POST"])
 def index():
+    options = ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']  # Ensure options is defined at the start
+
     # Handle POST request to update the values
     if request.method == 'POST':
         config_data = read_json(config_file_path)
@@ -97,23 +99,37 @@ def index():
         config_data['duration'] = request.form.get('duration', config_data['duration'])
         config_data['effect'] = get_effects_js()
         app.logger.info(f"Updated config: {config_data}")
+
+        # Parse and validate segment ranges
+        seg0s = int(request.form.get('seg0s', config_data['seg0s']))
+        seg0e = int(request.form.get('seg0e', config_data['seg0e']))
+        seg1s = int(request.form.get('seg1s', config_data['seg1s']))
+        seg1e = int(request.form.get('seg1e', config_data['seg1e']))
+
+        if not (seg0e <= seg1s or seg1e <= seg0s):
+            app.logger.error("Segments overlap. Please ensure seg0 and seg1 do not overlap.")
+            return render_template('index.htm', data=config_data, options=options, selected_value=config_data['colorOrder'])
+
+        if seg0s >= seg0e or seg1s >= seg1e:
+            app.logger.error("Invalid segment ranges. Start must be less than end.")
+            return render_template('index.htm', data=config_data, options=options, selected_value=config_data['colorOrder'])
+
+        # Update config_data with validated values
+        config_data['seg0s'] = seg0s
+        config_data['seg0e'] = seg0e
+        config_data['seg1s'] = seg1s
+        config_data['seg1e'] = seg1e
+
+        # Write updated config and update segments
         write_json(config_file_path, config_data)
         update_segments(config_data)
-  
 
-
-    options =  ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
     config_data = read_json(config_file_path)
     config_data['effect'] = get_effects_js()
     selected_value = config_data['colorOrder']  # Ensure selected_value matches colorOrder
 
     # Pass data and options to the template
-    #app.logger.info(render_template('index.htm', data=config_data, options=options, selected_value=selected_value))
-
     app.logger.info(f"config_data: {config_data}")
-
-  
- 
     return render_template('index.htm', data=config_data, options=options, selected_value=selected_value)
 
 
