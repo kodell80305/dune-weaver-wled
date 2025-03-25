@@ -1766,14 +1766,15 @@ function requestJson(command=null)
 		}
 		//command.bs = parseInt(gId('bs').value);
 		req = JSON.stringify(command);
-		if (req.length > 1340) useWs = false; // do not send very long requests over websocket
-		if (req.length >  500 && lastinfo && lastinfo.arch == "esp8266") useWs = false; // esp8266 can only handle 500 bytes
+		//console.log("req POST: " + req);
+		//if (req.length > 1340) useWs = false; // do not send very long requests over websocket
+		//if (req.length >  500 && lastinfo && lastinfo.arch == "esp8266") useWs = false; // esp8266 can only handle 500 bytes
 	};
 
-	if (useWs) {
-		ws.send(req?req:'{"v":true}');
-		return;
-	}
+	//if (useWs) {
+	//#	ws.send(req?req:'{"v":true}');
+	//#	return;
+	//#}
 
 	fetch(getURL('/json/si'), {
 		method: type,
@@ -2331,6 +2332,7 @@ function setSeg(s)
 
 
 	resetUtil(); // close add segment dialog just in case
+	console.log("line 2334", obj)
 	requestJson(obj);
 }
 

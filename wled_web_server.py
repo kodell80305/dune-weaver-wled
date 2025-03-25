@@ -41,6 +41,7 @@ def init_config():
         "timer": 0,
         "effect": "",
         "defaultColor": (0, 0, 255),
+        "defaultBackground": (255, 0, 0),
         "individAddress": True
     }
 
@@ -56,7 +57,8 @@ def init_config():
             if key not in config_data:
                 config_data[key] = value
                 app.logger.info(key)
-                breakpoint()
+                # Remove the breakpoint
+                # breakpoint()
 
             app.logger.info(f"{key}: {config_data[key]}")
 
@@ -82,7 +84,7 @@ from wled_rpi import set_led, all_off, update_bri, get_effects, update_effect,  
 
 @app.route('/', methods=["GET", "POST"])
 def index():
-    options = ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']  # Ensure options is defined at the start
+    options = ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']  # Ensure qqoptions is defined at the start
 
     # Handle POST request to update the values
     if request.method == 'POST':
@@ -91,7 +93,7 @@ def index():
         config_data['colorOrder'] = request.form.get('my_select', config_data['colorOrder'])
         config_data['seg0s'] = request.form.get('seg0s', config_data['seg0s']) 
         config_data['seg0e'] = request.form.get('seg0e', config_data['seg0e'])
-        config_data['seg0bri'] = request.form.get('seg0bri', config_data['seg0bri'])
+        config_data['seg0bri'] = int(request.form.get('seg0bri', config_data['seg0bri']))  # Ensure seg0bri is an integer
         config_data['seg1s'] = request.form.get('seg1s', config_data['seg1s'])
         config_data['seg1e'] = request.form.get('seg1e', config_data['seg1e'])
         config_data['seg1bri'] = request.form.get('seg1bri', config_data['seg1bri'])
@@ -149,18 +151,27 @@ def set_color(rval, gval, bval):        #Set all leds to same color
     myQueue.put((set_led, ((led_color),)))    
    
 def handle_on(on):
-    #On command with no other parameters is a power on command.   Use the last single color setting
+    # On command with no other parameters is a power on command. Use the last single color setting
     global state
     state['state']['on'] = on
+
+    config_data = read_json(config_file_path)  # Read config.json
+
     if on:
         app.logger.info("set power on")
-        config_data = read_json(config_file_path)  # Read defaultColor from config.json
+        config_data['seg0pwr'] = True  # Update seg0pwr to true
         led_color = config_data['defaultColor']
         app.logger.info(f"led_color {led_color}")
         myQueue.put((set_led, ((led_color),)))
+
+        # Save the led_color to defaultColor in config.json
+        config_data['defaultColor'] = led_color
     else:
         app.logger.info("set power off")
+        config_data['seg0pwr'] = False  # Update seg0pwr to false
         myQueue.put((all_off, ()))
+
+    write_json(config_file_path, config_data)  # Save updated config
         
 def handle_bri(bri):
     global state
@@ -177,9 +188,7 @@ def handle_effect(effect_id):
     app.logger.info(f'handle_effect({effect_id})')
     global state
     if(effect_id == 0):        #effect 0 is solid color
-        state['state']['seg'][0]['fx'] = -1
         handle_on(True)
-        return   
 
     state['state']['pl'] = -1                #cancel any playlist currently active
     state['state']['seg'][0]['fx'] = effect_id
@@ -262,6 +271,10 @@ def parse_state():
                     if isinstance(value, dict):
                         if 'col' in value:
                             led = value['col']
+                            # Handle case where the first value is an empty list
+                            #TEMPORARY WORKAROUND FOR BUG IN UI!!!
+                            if len(led) > 1 and isinstance(led[0], list) and len(led[0]) == 0:
+                                led = led[1:]  # Use the second value
                             # Validate that led[0] is not empty
                             if len(led) > 0 and len(led[0]) >= 3:
                                 set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))
@@ -272,6 +285,11 @@ def parse_state():
                         for segment in value:
                             if isinstance(segment, dict) and 'col' in segment:
                                 led = segment['col']
+                                # Handle case where the first value is an empty list
+                                # Handle case where the first value is an empty list
+                                #TEMPORARY WORKAROUND FOR BUG IN UI!!!
+                                if len(led) > 1 and isinstance(led[0], list) and len(led[0]) == 0:
+                                    led = led[1:]  # Use the second value
                                 # Validate that led[0] is not empty
                                 if len(led) > 0 and len(led[0]) >= 3:
                                     set_color(int(led[0][0]), int(led[0][1]), int(led[0][2]))

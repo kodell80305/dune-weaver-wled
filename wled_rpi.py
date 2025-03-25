@@ -68,6 +68,10 @@ seg1s = 0
 seg1e = 0
 individAddr = False
 
+# Define global variables
+default_color = (0, 0, 255)  # Default to blue
+default_background = (255, 0, 0)  # Default to red
+
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
     if pos < 85:
@@ -80,9 +84,9 @@ def wheel(pos):
         return Color(0, pos * 3, 255 - pos * 3)
 
 
-def Rainbow(strip, wait_ms=20, iterations=1):
+def Rainbow(strip, wait_ms=10, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
-    for j in range(256 * iterations):
+    while True:
         for i in range(seg0s, seg0e):  # Use global seg0s
             strip.setPixelColor(i, wheel((i + j) & 255))
         strip.show()
@@ -103,20 +107,29 @@ def colorWipe(strip, color=Color(*current_color), wait_ms=50):
             return  
 
 
-def Theater(strip, color=Color(*current_color), wait_ms=50, iterations=10):
-    """Movie theater light style chaser animation."""
-    for j in range(iterations):
-        for q in range(3):
-            for i in range(seg0s, seg0e, 3):  # Use global seg0s
-                strip.setPixelColor(i + q, color)
+def Theater(strip, wait_ms=50):
+    """
+    Pattern of one lit and two unlit LEDs moving along the strip.
+    """
+    while True:
+        for offset in range(3):  # Cycle through the three positions
+            # Set the entire strip to the default background color
+            for i in range(seg0s, seg0e):
+                strip.setPixelColor(i, Color(*default_background))
+
+            # Set the lit and unlit pattern
+            for i in range(seg0s + offset, seg0e, 3):
+                strip.setPixelColor(i, Color(*default_color))  # Lit LED
+                if i + 1 < seg0e:
+                    strip.setPixelColor(i + 1, Color(0, 0, 0))  # Unlit LED
+                if i + 2 < seg0e:
+                    strip.setPixelColor(i + 2, Color(0, 0, 0))  # Unlit LED
+
             strip.show()
             time.sleep(wait_ms / 1000.0)
-            #every effect should return if anything is in the queue
-     
-            for i in range(seg0s, seg0e, 3):  # Use global seg0s
-                strip.setPixelColor(i + q, 0)
-        if checkCancel():
-            return
+
+            if checkCancel():
+                return
 
 
 def Rainbow(strip, wait_ms=20, iterations=5):
@@ -135,72 +148,103 @@ def TheaterRainbow(strip, wait_ms=50):
 
     for j in range(256):
         for q in range(3):
-            for i in range(seg0s, seg0e, 3):  # Use global seg0s
+            for i in range(seg0s, seg0e, 3):
                 strip.setPixelColor(i + q, wheel((i + j) % 255))
             strip.show()
             time.sleep(wait_ms / 1000.0)
-            for i in range(seg0s, seg0e, 3):  # Use global seg0s
+            for i in range(seg0s, seg0e, 3):
                  strip.setPixelColor(i + q, 0)
         if checkCancel():
             return
 
-def Loading(strip, wait_ms=50, iterations=10):
+def Loading(strip, wait_ms=20, iterations=10):
     """
     Moves a sawtooth pattern along the strip.
     """
-  
+    if not hasattr(Loading, 'counter'):
+        Loading.counter = 0
 
-    if  individAddr:
+    # Clear the strip
+    for i in range(seg0s, seg0e):
+        strip.setPixelColor(i, Color(0, 0, 0))
+
+    if individAddr:
         pattern_length = 10
     else:
         pattern_length = 6  # Length of the sawtooth pattern
 
+    while True:
+        if Loading.counter == 0:
+            Loading.counter = seg0s
 
+        if Loading.counter == seg0e:
+            Loading.counter = seg0s
 
-    for j in range(iterations):
-        for i in range(seg0s, seg0e):
-            # Clear the strip
-            strip.setPixelColor(i, Color(0, 0, 0))
+        # Calculate brightness for each pixel in the sawtooth pattern
+        for k in range(pattern_length):
+            brightness = 255 * k // pattern_length
+            scaled_color = tuple(int(c * brightness / 255) for c in default_color)
 
-            # Calculate brightness for each pixel in the sawtooth pattern
-            for k in range(pattern_length):
-                if i + k < seg0e:
-                    brightness = max(0, 255 - (255 * k // pattern_length))
+            # Set pixel color and wrap around
+            i = Loading.counter + k
+            if i >= seg0e:
+                i = seg0s + i - seg0e
 
-                strip.setPixelColor(i + k, Color(brightness, 0, 0))
-                strip.show()
-                time.sleep(wait_ms / 1000.0)
+            strip.setPixelColor(i, Color(*scaled_color))
 
-            if checkCancel():
-                return
-
-def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=50, iterations=100):
-    """
-    Simulates bouncing balls with gravity.
-    """
-
-    positions = [0.0] * num_balls
-    velocities = [0.0] * num_balls
-    colors = [wheel(int(i * 256 / num_balls)) for i in range(num_balls)]
-
-    for _ in range(iterations):
-        for i in range(num_balls):
-            velocities[i] += gravity / 1000.0  # Simulate gravity
-            positions[i] += velocities[i]
-
-            if positions[i] >= seg0e - 1:  # Bounce off the end
-                positions[i] = seg0e - 1
-                velocities[i] = -velocities[i] * 0.9  # Lose some energy on bounce
-
-        if not overlay:
-            for j in range(seg0s, seg0e):  # Use global seg0s
-                strip.setPixelColor(j, Color(0, 0, 0))  # Clear the strip
-
-        for i in range(num_balls):
-            strip.setPixelColor(int(positions[i]), colors[i])
+        Loading.counter += 1
+        if Loading.counter >= seg0e:
+            Loading.counter = seg0s
 
         strip.show()
         time.sleep(wait_ms / 1000.0)
+
+        if checkCancel():
+            return
+
+def BouncingBalls(strip, gravity=9.8, num_balls=3, overlay=False, wait_ms=500, iterations=1000):
+    """
+    Simulates bouncing balls.
+    """
+    app.logger.debug(f"bouncing seg0s:")
+
+    # Initialize positions, velocities, and directions if not already initialized
+    if not hasattr(BouncingBalls, 'positions'):
+        BouncingBalls.positions = [i for i in range(num_balls)]
+    if not hasattr(BouncingBalls, 'velocities'):
+        BouncingBalls.velocities = [1] * num_balls
+    if not hasattr(BouncingBalls, 'dir'):
+        BouncingBalls.dir = [1] * num_balls
+
+    
+
+    while True:
+        for i in range(num_balls):
+            # Update positions
+            BouncingBalls.positions[i] += BouncingBalls.dir[i]
+
+            # Bounce off the ends
+            if BouncingBalls.positions[i] >= seg0e - 1:
+                BouncingBalls.dir[i] = -1
+
+            if(i == 0):
+                app.logger.debug(f"bouncing seg0s: {i} {BouncingBalls.positions[i], BouncingBalls.positions[i+1]}")
+
+            if BouncingBalls.positions[i] <= seg0s:
+                BouncingBalls.dir[i] = 1
+      
+
+            if(i == 0):
+                app.logger.debug(f"bouncing seg0s: {i} {BouncingBalls.positions[i], BouncingBalls.positions[i+1]}")
+
+             # Set pixel color
+            strip.setPixelColor(int(BouncingBalls.positions[i]), Color(*default_color))
+
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
+
+        # Turn off the first ball's previous position
+        strip.setPixelColor(int(BouncingBalls.positions[0]), Color(0, 0, 0))
 
         if checkCancel():
             return
@@ -213,7 +257,7 @@ def Fairy(strip, speed=50, num_flashers=10, iterations=100):
     flashers = [random.randint(0, seg0e - 1) for _ in range(num_flashers)]
     colors = [random.randint(0, 255) for _ in range(num_flashers)]  # Store color positions for the wheel
 
-    for _ in range(iterations):
+    while True:
         for i in range(seg0s, seg0e):  # Use global seg0s
             strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
 
@@ -254,21 +298,24 @@ def Glitter(strip, speed=50, intensity=128, overlay=False, iterations=100):
         if checkCancel():
             return
 
-def HalloweenEyes(strip, duration=5000, fade_time=500, overlay=False):
+def HalloweenEyes(strip, duration=5000, fade_time=1500, overlay=False):
     """
     Simulates a pair of blinking eyes at random intervals along the strip.
     """
-    app.logger.debug(f"seg0s: {seg0s} (type: {type(seg0s)}), seg0e: {seg0e} (type: {type(seg0e)})")
+    for i in range(seg0s, seg0e):
+        if not overlay:
+            strip.setPixelColor(i, Color(0, 0, 0))  # Clear the strip
 
     start_time = time.time()
-    eye_color = Color(255, 0, 0)  # Red eyes
     bg_color = Color(0, 0, 0)  # Background color
 
-    while (time.time() - start_time) * 1000 < duration:
+    app.logger.info(f"Setting LEDs eye_color: {default_color} with background color: {default_background}")
+
+    while True:
         # Randomly select a position for the eyes
         eye_position = random.randint(seg0s, seg0e - 2)
-        strip.setPixelColor(eye_position, eye_color)
-        strip.setPixelColor(eye_position + 1, eye_color)
+        strip.setPixelColor(eye_position, Color(*default_color))
+        strip.setPixelColor(eye_position + 2, Color(*default_color))
 
         strip.show()
         time.sleep(fade_time / 1000.0)
@@ -276,15 +323,36 @@ def HalloweenEyes(strip, duration=5000, fade_time=500, overlay=False):
         # Fade out the eyes
         for i in range(fade_time, 0, -50):
             brightness = i / fade_time
-            strip.setPixelColor(eye_position, Color(int(255 * brightness), 0, 0))
-            strip.setPixelColor(eye_position + 1, Color(int(255 * brightness), 0, 0))
+            adjusted_color = tuple(int(c * brightness) for c in default_color)
+            strip.setPixelColor(eye_position, Color(*adjusted_color))
+            strip.setPixelColor(eye_position + 2, Color(*adjusted_color))
             strip.show()
             time.sleep(50 / 1000.0)
 
         # Clear the eyes
         strip.setPixelColor(eye_position, bg_color)
-        strip.setPixelColor(eye_position + 1, bg_color)
+        strip.setPixelColor(eye_position + 2, bg_color)
         strip.show()
+
+        if checkCancel():
+            return
+
+def Twinkle(strip, num_leds=10, wait_ms=100, iterations=100):
+    """
+    Lights up a number of LEDs at random positions within seg0s to seg0e with a delay.
+    """
+    while True:
+        # Set the strip to the default background color
+        for i in range(seg0s, seg0e):
+            strip.setPixelColor(i, Color(*default_background))
+
+        # Light up random LEDs
+        for _ in range(num_leds):
+            pos = random.randint(seg0s, seg0e - 1)
+            strip.setPixelColor(pos, Color(*default_color))
+
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
 
         if checkCancel():
             return
@@ -321,20 +389,20 @@ effects_list = [
         
         }
     },
-    {
-        'ID': '14',
-        "func": BouncingBalls,
-        "Effect": 'Bouncing Balls',
-        "description": "Bouncing ball effect",
-        "parameters": {
-            "wait_ms": 20,         #speed, gap size
-            'gravity': 9.8,
-            'num_balls': 3,
-            'overlay': False,
-            'wait_ms': 50,
-            'iterations': 100
-        }
-       },
+   # {
+   #    'ID': '14',
+   #     "func": BouncingBalls,
+   #    "Effect": 'Bouncing Balls',
+   #    "description": "Bouncing ball effect",
+   #    "parameters": {
+   #        "wait_ms": 20,         #speed, gap size
+   #        'gravity': 9.8,
+   #        'num_balls': 3,
+   #        'overlay': False,
+   #        'wait_ms': 50,
+   #        'iterations': 100
+   #    }
+   #   },
     {
         'ID': '9',
         "func": Rainbow,
@@ -389,6 +457,17 @@ effects_list = [
             'fade_time': 500,
             'overlay': False
         }
+    },
+    {
+        'ID': '17',
+        'func': Twinkle,
+        'Effect': 'Twinkle',
+        'description': 'Lights up random LEDs within the range seg0s to seg0e',
+        'parameters': {
+            'num_leds': 10,
+            'wait_ms': 100,
+            'iterations': 100
+        }
     }
 ]
 
@@ -442,6 +521,10 @@ def run_effects(effect_id):
         app.logger.info(f"Effect with id {effect_id} not found")
 
 def update_bri(bri_arg):
+    """
+    Updates the brightness of the LED strip.
+    """
+    bri_arg = int(bri_arg)  # Ensure bri_arg is an integer
     strip.setBrightness(bri_arg)
     strip.show()
  
@@ -458,19 +541,32 @@ def all_off():
     strip.show()
 
 def set_led(led_color):
-    global current_effect, current_pl
-    current_effect = -1
-    current_pl = -1
+    global current_effect, current_pl, default_color
+    #current_effect = -1
+    #current_pl = -1
 
     # Validate led_color
     if not isinstance(led_color, (list, tuple)) or len(led_color) != 3:
         raise ValueError(f"Invalid led_color: {led_color}. Expected a tuple or list of 3 integers.")
 
+    # Save the color as default_color
+    default_color = led_color
+
     for i in range(seg0s, seg0e):  # Use global seg0s and seg0e
         strip.setPixelColor(i, Color(*led_color))
+
+    for i in range(seg1s, seg1e):
+        strip.setPixelColor(i, Color(128, 128, 128))
+    
     strip.show()
 
 def update_effect(effect_id):
+
+    #if effect id is zero, we should set the color to the default color
+    app.logger.debug(f"in update_effect() {effect_id}")
+    if effect_id == 0:
+        set_led(default_color)
+
     global current_effect, current_pl
     current_pl  =  -1
     current_effect = effect_id
@@ -507,7 +603,7 @@ color_order_map = {
 # Add a global variable to store the current LED_COLOR
 current_led_color = None
 
-def init_rpi(config_data):
+def init_rpi_xx(config_data):
     global strip, seg0s, seg0e, seg1s, seg1e
     # Save segment values in global variables
     # Save segment values in global variables0e'])  # Ensure seg0e is an integer
@@ -575,8 +671,11 @@ def update_segments(new_config_data):
     """
     Updates segment values and reinitializes the LED strip if necessary.
     """
-    global seg0s, seg0e, seg1s, seg1e, strip, individAddr, current_led_color
+    global seg0s, seg0e, seg1s, seg1e, strip, individAddr, current_led_color, default_color, default_background
     from wled_web_server import app as app    # Check if any segment values have changed
+
+
+    firstInit = False
 
     # Check if any segment values have changedw_config_data['seg0s'] or
     seg_changed = (
@@ -605,16 +704,29 @@ def update_segments(new_config_data):
     new_color_order = new_config_data.get('colorOrder', 'RGB')
     new_LED_COLOR = color_order_map.get(new_color_order, WS2811_STRIP_RGB)    # Reinitialize the LED strip only if led_count or LED_COLOR has changed
 
+
+    #app.logger doesn't exist yet ..
+    if strip is None:
+        print(f"Initializing with LED count: {new_led_count} and color order: {new_color_order}")
+        firstInit = True
+
     # Reinitialize the LED strip only if led_count or LED_COLOR has changed
     if strip is None or new_led_count != strip.numPixels() or new_LED_COLOR != current_led_color:
         
-    
         try:
             strip = PixelStrip(new_led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, new_LED_COLOR)
             strip.begin()
+
+            if firstInit:
+                print("LED strip initialized")
+            else:
+                app.logger.info("LED strip reinitialized due to configuration changes.") 
+                display_color()
+   
             current_led_color = new_LED_COLOR  # Update the stored LED_COLOR
-            app.logger.info("LED strip reinitialized due to configuration changes.") 
-            display_color()
+
+            
+
         
         except Exception as e:
             app.logger.error("Failed to reinitialize LED strip.")
@@ -636,30 +748,26 @@ def update_segments(new_config_data):
         app.logger.error("Invalid segment ranges. Start must be less than end.")
         return
 
-    # Calculate the overall start and end LEDs
-    overall_start = min(new_seg0s, new_seg1s)
-    overall_end = max(new_seg0e, new_seg1e)
-
-    # Check if the maximum number of LEDs has changed
-    new_led_count = overall_end - overall_start
-    if strip is None or new_led_count != strip.numPixels():
-        try:
-            strip = PixelStrip(new_led_count, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 128, LED_CHANNEL, current_led_color)
-            strip.begin()
-            app.logger.info(f"LED strip reinitialized with {new_led_count} LEDs.")
-        except Exception as e:
-            app.logger.error(f"Failed to reinitialize LED strip: {e}")
-
     # Update global segment values
     seg0s, seg0e, seg1s, seg1e = new_seg0s, new_seg0e, new_seg1s, new_seg1e
     individAddr = new_config_data['individAddress']
 
-    # Adjust segments if not individually addressable
     if not individAddr:
         seg0s //= 3
         seg1s //= 3
         seg0e //= 3
         seg1e //= 3
+
+    # Update default colors
+    default_color = new_config_data.get('defaultColor', (0, 0, 255))  # Default to blue
+    default_background = new_config_data.get('defaultBackground', (0, 0, 0))  # Default to red
+
+    # If seg0pwr is true, set the LEDs to the default color
+    if new_config_data.get('seg0pwr', True):
+        app.logger.info(f"Setting LEDs to default color: {default_color}")
+        set_led(default_color)
+        update_bri(new_config_data.get('seg0bri', 128))
+
 
 def run_rpi_app():
     global current_effect
