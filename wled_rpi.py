@@ -743,20 +743,19 @@ def update_segments(new_config_data):
         app.logger.error("Segments overlap. Please ensure seg0 and seg1 do not overlap.")
         return
 
-    # Ensure valid segment ranges
-    if new_seg0s >= new_seg0e or new_seg1s >= new_seg1e:
-        app.logger.error("Invalid segment ranges. Start must be less than end.")
+    # Ensure valid segment ranges.   allow seg1s to be equal to seg1e, 
+    if new_seg0s >= new_seg0e or new_seg1s > new_seg1e:
+        app.logger.error(f"Invalid segment ranges. Start must be less than end.")
         return
 
     # Update global segment values
     seg0s, seg0e, seg1s, seg1e = new_seg0s, new_seg0e, new_seg1s, new_seg1e
-    individAddr = new_config_data['individAddress']
 
-    if not individAddr:
+    if not individAddr: 
         seg0s //= 3
         seg1s //= 3
-        seg0e //= 3
         seg1e //= 3
+        seg0e //= 3    # Update the LED count and color order
 
     # Update default colors
     default_color = new_config_data.get('defaultColor', (0, 0, 255))  # Default to blue

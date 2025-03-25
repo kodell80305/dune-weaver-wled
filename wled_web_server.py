@@ -112,7 +112,7 @@ def index():
             app.logger.error("Segments overlap. Please ensure seg0 and seg1 do not overlap.")
             return render_template('index.htm', data=config_data, options=options, selected_value=config_data['colorOrder'])
 
-        if seg0s >= seg0e or seg1s >= seg1e:
+        if seg0s >= seg0e or seg1s > seg1e:
             app.logger.error("Invalid segment ranges. Start must be less than end.")
             return render_template('index.htm', data=config_data, options=options, selected_value=config_data['colorOrder'])
 
