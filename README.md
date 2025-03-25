@@ -1,5 +1,9 @@
 # dune-weaver-wled
 
+## 
+
+NOTE:  I did an update and there seems to be an issue with the code that's currently in the repository, so hold off on any updates until I can resolve this (soon)
+
 ##
 There are really several ways you can try this out.   The easiest would be to just clone it to a mac or pc and run "python app.py".  The software will detect that it doesn't have the rpi_wx28x1 module and run in simulation mode.   At this point it's just a web server.
 
